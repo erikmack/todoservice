@@ -2,7 +2,15 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "config.h"
 #include "credis.h"
+
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
+#define XML_HEADER "<?xml version=\"1.0\"?>"
+#define VERSION_CONTENT XML_HEADER "<version major=\"" TOSTRING(API_VERSION_MAJOR) \
+	"\" minor=\"" TOSTRING(API_VERSION_MINOR) "\" age=\"" TOSTRING(API_VERSION_AGE) "\" />"	
 
 int main() {
 
@@ -63,16 +71,13 @@ int main() {
 			if(!strcmp("version",slug) ) {
 
 				if(method && !strcmp("GET",method)) {
-					char * val;
-					credis_get(rh, "version", &val);
-
 					char * response = 
 						"HTTP/1.1 200 OK\r\n"
-						"Content-Type: text/javascript\r\n"
+						"Content-Type: application/xhtml+xml\r\n"
 						"Content-Length: %d\r\n\r\n"
-						"API.VersionReported(\"%s\");";
+						"%s";
 
-					printf(response, strlen(val)+24, val);
+					printf(response, strlen( VERSION_CONTENT ), VERSION_CONTENT);
 				} else goto err405;
 			//} else if(uri && !strcmp("/version",uri) ) {
 			} else goto err404;

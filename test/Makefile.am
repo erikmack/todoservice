@@ -1,7 +1,7 @@
 TESTS = \
-	version.sh \
-	invalid_uri.sh \
-	invalid_method.sh
+	test_case_050.sh \
+	test_case_060.sh \
+	test_case_900.sh
 
 CLEANFILES = $(TESTS) \
 	out.txt
@@ -16,25 +16,27 @@ COMMON_POST_ECHO = \
 	&& chmod +x $@
 
 
-version.sh:
+test_case_050.sh:
 	echo "REQUEST_URI=/version" > $@
 	echo "REQUEST_METHOD=GET" >> $@
 	$(COMMON_ECHO)
-	echo "grep 200 out.txt >/dev/null || exit 1" >> $@
-	echo "grep 0.3 out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"HTTP/1.1 200 OK\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"major=\\\"1\\\"\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"minor=\\\"0\\\"\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"age=\\\"0\\\"\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 
-invalid_uri.sh:
-	echo "REQUEST_URI=/dogs" > $@
-	echo "REQUEST_METHOD=GET" >> $@
-	$(COMMON_ECHO)
-	echo "grep 404 out.txt >/dev/null || exit 1" >> $@
-	$(COMMON_POST_ECHO)
-
-invalid_method.sh:
+test_case_060.sh:
 	echo "REQUEST_URI=/version" > $@
 	echo "REQUEST_METHOD=PUT" >> $@
 	$(COMMON_ECHO)
-	echo "grep 405 out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"HTTP/1.1 405 Method not allowed\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+
+test_case_900.sh:
+	echo "REQUEST_URI=/dogs" > $@
+	echo "REQUEST_METHOD=GET" >> $@
+	$(COMMON_ECHO)
+	echo "grep \"HTTP/1.1 404 File not found\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 

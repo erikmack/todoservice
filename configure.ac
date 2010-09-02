@@ -5,6 +5,9 @@ AC_PREREQ([2.65])
 AC_INIT([resttest], [0.1], [erikmack@gmail.com])
 AC_CONFIG_SRCDIR([src/resttest.c])
 AC_CONFIG_HEADERS([config.h])
+AC_DEFINE(API_VERSION_MAJOR,1,[API Major version number, changes when API changes])
+AC_DEFINE(API_VERSION_MINOR,0,[API Minor version number, changes when API doesn't])
+AC_DEFINE(API_VERSION_AGE,0,[API age, changes when API changes in a backward-compatible way])
 
 AM_INIT_AUTOMAKE
 

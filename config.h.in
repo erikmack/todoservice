@@ -1,5 +1,14 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* API age, changes when API changes in a backward-compatible way */
+#undef API_VERSION_AGE
+
+/* API Major version number, changes when API changes */
+#undef API_VERSION_MAJOR
+
+/* API Minor version number, changes when API doesn't */
+#undef API_VERSION_MINOR
+
 /* Define to 1 if you have the `credis' library (-lcredis). */
 #undef HAVE_LIBCREDIS
 
