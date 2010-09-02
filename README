@@ -1,0 +1,48 @@
+
+URI Specification
+=================
+
+Test             Req  Resp
+Case Method Code Type Type  URI         Condition/Description
+---- ------ ---- ---- ----  ---         ---------------------
+010  GET    200       xhtml /           Links (<a...>) to /todos and /version
+020   *     405             /
+  
+050  GET    200       xhtml /version    API version, see below
+060   *     405             /version
+
+110  GET    200       xhtml /todos      Returns list of links to items
+                                        Includes HTML form for POSTing
+120  GET    500             /todos      Server error, database issue
+130  POST   200  text xhtml /todos      Returns link to new item
+140  POST   400             /todos      Posted todo in wrong format
+150  POST   500             /todos      Server error, database issue
+160   *     405             /todos
+
+200  GET    200       xhtml /todos/{ID}
+210  GET    404             /todos/{ID} No such item
+215  GET    410             /todos/{ID} Gone (item ID < current highest)
+220  GET    500             /todos/{ID} Server error, database issue
+230  PUT    200  text       /todos/{ID}
+240  PUT    400             /todos/{ID} Posted todo in wrong format
+250  PUT    404             /todos/{ID} No such item
+260  PUT    500             /todos/{ID} Server error, database issue
+270  DELETE 200             /todos/{ID}
+280  DELETE 404             /todos/{ID} No such item
+290  DELETE 500             /todos/{ID} Server error, database issue
+295   *     405             /todos/{ID}
+  
+900         404             *
+
+Notes:
+- {ID} is an incrementing integer
+- /version returns the API version, which is not the product
+  version.  We copy the versioning scheme used by libtool:
+    major,minor,age
+  where:
+    - major bump means the API changed 
+	- minor bump means the internals changed (no API changes)
+	- age bump measures backward-compatibility 
+	     (can only occur with a major bump)
+  
+        
