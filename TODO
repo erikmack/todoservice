@@ -1,2 +1,2 @@
 Package credis as subproject?  Compiled statically?
-
+create_unique_slug should take multibyte characters

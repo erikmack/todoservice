@@ -4,9 +4,7 @@
 
 #include "config.h"
 #include "credis.h"
-
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
+#include "utility.h"
 
 #define XML_HEADER "<?xml version=\"1.0\"?>"
 #define VERSION_CONTENT XML_HEADER "<version major=\"" TOSTRING(API_VERSION_MAJOR) \

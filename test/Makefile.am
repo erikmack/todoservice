@@ -1,10 +1,24 @@
 TESTS = \
 	test_case_050.sh \
 	test_case_060.sh \
-	test_case_900.sh
+	test_case_900.sh \
+	unique_slug_01.sh \
+	unique_slug_02.sh \
+	unique_slug_03.sh \
+	unique_slug_04.sh \
+	unique_slug_05.sh
+
+
+
+check_PROGRAMS = \
+	uniqueslug
 
 CLEANFILES = $(TESTS) \
-	out.txt
+	out.txt \
+	uniqueslug
+
+uniqueslug_LDADD = ../src/libcore.a
+uniqueslug_CPPFLAGS = -I$(top_srcdir)/src
 
 COMMON_ECHO = \
 	echo "export REQUEST_URI" >> $@ \
@@ -39,4 +53,28 @@ test_case_900.sh:
 	$(COMMON_ECHO)
 	echo "grep \"HTTP/1.1 404 File not found\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
+
+unique_slug_01.sh: uniqueslug
+	echo "./uniqueslug dog dog || exit 1" > $@
+	$(COMMON_POST_ECHO)
+
+unique_slug_02.sh: uniqueslug
+	echo "./uniqueslug dog dog-2 dog || exit 1" > $@
+	$(COMMON_POST_ECHO)
+
+unique_slug_03.sh: uniqueslug
+	echo "./uniqueslug \"TwO WoRdS\" two || exit 1" > $@
+	$(COMMON_POST_ECHO)
+
+unique_slug_04.sh: uniqueslug
+	echo "./uniqueslug \"TwO WoRdS\" two-words two || exit 1" > $@
+	$(COMMON_POST_ECHO)
+
+unique_slug_05.sh: uniqueslug
+	echo "./uniqueslug dog dog-10 dog dog-1 dog-2 dog-3 dog-4 dog-5 dog-6 dog-7 dog-8 dog-9 || exit 1" > $@
+	$(COMMON_POST_ECHO)
+
+
+
+
 
