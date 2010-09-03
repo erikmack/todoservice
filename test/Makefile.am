@@ -9,7 +9,7 @@ CLEANFILES = $(TESTS) \
 COMMON_ECHO = \
 	echo "export REQUEST_URI" >> $@ \
 	&& echo "export REQUEST_METHOD" >> $@ \
-	&& echo "../src/resttest >out.txt" >> $@
+	&& echo "../src/todoservice >out.txt" >> $@
 	
 COMMON_POST_ECHO = \
 	echo "rm -f out.txt" >> $@ \
