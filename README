@@ -26,7 +26,9 @@ Case Method Code Type Type  URI         Condition/Description
 220  GET    500             /todos/{ID} Server error, database issue
 230  PUT    200  form       /todos/{ID}
 240  PUT    400             /todos/{ID} Posted todo in wrong format
-250  PUT    404             /todos/{ID} No such item
+250  PUT    404             /todos/{ID} No such item ... note, we don't allow
+                                        PUTting a new resource, we'll require POSTing
+										to the parent resource
 255  PUT    415             /todos/{ID} Wrong content-type
 260  PUT    500             /todos/{ID} Server error, database issue
 270  DELETE 200             /todos/{ID}

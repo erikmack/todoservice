@@ -42,6 +42,8 @@ char * url_decode( const char * raw ) {
 				*(result + strlen( result )) = cout;
 
 			} else return NULL;
+		} else if( r == '+' ) {
+			*(result + strlen( result )) = ' ';
 		} else {
 			*(result + strlen( result )) = r;
 		}

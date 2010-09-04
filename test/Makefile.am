@@ -9,9 +9,8 @@ TESTS = \
 	unique_slug_05.sh \
 	url_decode_01.sh \
 	url_decode_02.sh \
-	url_decode_03.sh
-
-
+	url_decode_03.sh \
+	url_decode_04.sh
 
 check_PROGRAMS = \
 	uniqueslug \
@@ -91,8 +90,13 @@ url_decode_02.sh: urldecode
 	$(COMMON_POST_ECHO)
 
 url_decode_03.sh: urldecode
-	echo "./urldecode \"h%65%6C%6\" hello || exit 0" > $@ # invalid input, expect failure
+	echo "./urldecode \"h%65%6C%6\" hello" > $@ # invalid input, expect failure
 	$(COMMON_POST_ECHO)
+
+url_decode_04.sh: urldecode
+	echo "./urldecode \"hel%6co+sir+\" \"hello sir \" || exit 1" > $@
+	$(COMMON_POST_ECHO)
+
 
 
 
