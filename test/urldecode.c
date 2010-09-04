@@ -19,6 +19,8 @@ int main(int argc, char ** argv) {
 	if( !output ) return EXIT_FAILURE;
 
 	int success = !strcmp( output, expected );
+	free( output );
+	output = NULL;
 	
 	return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }

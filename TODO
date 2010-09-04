@@ -8,4 +8,17 @@ create_unique_slug should take multibyte characters
 Implement HEAD for all URIs, as per RFC 3875
 
 Implement at least one basic caching mechanism
+- Requires adding build time into config.h for 
+  fixed URIs like / and /version
+  ... or, just hard-code with API version parts
+
+Support hosting in sub-path.  May require stripping off 
+  first n characters of REQUEST_URI, as specified by a
+  parameter to 'configure'
+
+Implement a sample client with bash/curl
+
+Ensure credis_connect only occurs when connection is needed
+
+Implement sample apache vhost include, nicely commented
 

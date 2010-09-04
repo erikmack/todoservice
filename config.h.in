@@ -12,6 +12,9 @@
 /* Define to 1 if you have the `credis' library (-lcredis). */
 #undef HAVE_LIBCREDIS
 
+/* Define to 1 if your C compiler doesn't accept -c and -o together. */
+#undef NO_MINUS_C_MINUS_O
+
 /* Name of package */
 #undef PACKAGE
 
@@ -32,6 +35,24 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* host for redis database, as set with --with-redis-host */
+#undef REDIS_HOST
+
+/* index for redis database, as set with --with-redis-db-index */
+#undef REDIS_INDEX
+
+/* port for redis database, as set with --with-redis-port */
+#undef REDIS_PORT
+
+/* host for redis database, as set with --with-redis-tests-host */
+#undef REDIS_TESTS_HOST
+
+/* index for redis database, as set with --with-redis-tests-db-index */
+#undef REDIS_TESTS_INDEX
+
+/* port for redis database, as set with --with-redis-tests-port */
+#undef REDIS_TESTS_PORT
 
 /* Version number of package */
 #undef VERSION

@@ -23,7 +23,7 @@ int main() {
 	
 	REDIS rh;
 
-	rh = credis_connect("localhost", 6379, 2000);
+	rh = credis_connect(REDIS_HOST, REDIS_PORT, 2000);
 
 
 
@@ -77,7 +77,10 @@ int main() {
 
 					printf(response, strlen( VERSION_CONTENT ), VERSION_CONTENT);
 				} else goto err405;
-			//} else if(uri && !strcmp("/version",uri) ) {
+			} else if(!strcmp("todos",slug) ) {
+
+				
+
 			} else goto err404;
 		}
 
