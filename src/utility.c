@@ -6,6 +6,58 @@
 #include "utility.h"
 
 /* result must be free()d */
+char * url_decode( const char * raw ) {
+
+	size_t sz = strlen( raw ) + 1;
+	char * result = malloc( sz );
+	memset( result, 0, sz );
+
+	if( !result ) return result; // OOM
+
+	char r;
+	// iterate through each char in raw
+	for( ; (r=*raw); raw++ ) {
+		
+		if( r == '%' ) {
+			char c1, c2, cout;
+			if( *(raw+1) && *(raw+2) ) {
+				raw++;
+				c1 = *raw;
+				
+				if(isdigit(c1)) cout = c1-'0';
+				else if( c1>='a' && c1 <='f' ) cout = 10 + (c1-'a');
+				else if( c1>='A' && c1 <='F' ) cout = 10 + (c1-'A');
+				else return NULL;
+
+				cout *= 16;
+				
+				raw++;
+				c2 = *raw;
+				
+				if(isdigit(c2)) cout += (c2-'0');
+				else if( c2>='a' && c2 <='f' ) cout += (10 + (c2-'a'));
+				else if( c2>='A' && c2 <='F' ) cout += (10 + (c2-'A'));
+				else return NULL;
+
+				*(result + strlen( result )) = cout;
+
+			} else return NULL;
+		} else {
+			*(result + strlen( result )) = r;
+		}
+
+	}
+
+	return result;
+}
+
+
+
+
+
+
+
+/* result must be free()d */
 char * create_unique_slug( const char * raw, 
 	UniqueTestFunc * is_unique, void * context_data ) {
 

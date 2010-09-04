@@ -4,6 +4,8 @@
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
+char * url_decode( const char * raw );
+
 typedef int (UniqueTestFunc)( char * test, void * context_data );
 
 char * create_unique_slug( const char * raw, 

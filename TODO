@@ -1,2 +1,6 @@
 Package credis as subproject?  Compiled statically?
 create_unique_slug should take multibyte characters
+  - current behavior technically works with MB input...
+    resulting ID may be unexpected, but it will be a
+	valid and unique URI
+
