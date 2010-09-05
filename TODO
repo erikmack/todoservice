@@ -18,7 +18,6 @@ Support hosting in sub-path.  May require stripping off
 
 Implement a sample client with bash/curl
 
-Ensure credis_connect only occurs when connection is needed
-
 Implement sample apache vhost include, nicely commented
 
+Find portable alternative to pgrep in unit tests

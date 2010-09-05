@@ -10,18 +10,9 @@
 #define VERSION_CONTENT XML_HEADER "<version major=\"" TOSTRING(API_VERSION_MAJOR) \
 	"\" minor=\"" TOSTRING(API_VERSION_MINOR) "\" age=\"" TOSTRING(API_VERSION_AGE) "\" />"	
 
-int main( int argc, char ** argv ) {
-
-	char * err_format = 
-		"HTTP/1.1 %d %s\r\n"
-		"Content-Length: 0\r\n\r\n";
-
-	char * uri = getenv("REQUEST_URI");
-	char * method = getenv("REQUEST_METHOD");
-
-	if(!uri || !method) goto err400;
-	
-	REDIS rh;
+static void ensure_redis_connection( REDIS * rhp ) {
+	// Only need to run once
+	if( *rhp ) return;
 
 	// Unit tests set this variable, so that unit tests
 	// can manipulate data freely without clobbering live data
@@ -39,18 +30,33 @@ int main( int argc, char ** argv ) {
 		db_index = REDIS_INDEX;
 	}
 
-	rh = credis_connect( host , port , REDIS_CONNECT_TIMEOUT );
-	if( !rh ) return EXIT_FAILURE;
+	*rhp = credis_connect( host , port , REDIS_CONNECT_TIMEOUT );
+	if( !(*rhp) ) exit(EXIT_FAILURE);
 
 	// Switch databases if not default (0) database
 	if( db_index ) {
-		int result = credis_select( rh, db_index );
-		if( result == -1 ) return EXIT_FAILURE;
+		int result = credis_select( *rhp, db_index );
+		if( result == -1 ) exit( EXIT_FAILURE);
 	}
 
+}
 
+static void ensure_redis_closed( REDIS * rhp ) {
+	if( *rhp ) credis_close( *rhp );
+}
 
+int main( int argc, char ** argv ) {
 
+	char * err_format = 
+		"HTTP/1.1 %d %s\r\n"
+		"Content-Length: 0\r\n\r\n";
+
+	char * uri = getenv("REQUEST_URI");
+	char * method = getenv("REQUEST_METHOD");
+
+	if(!uri || !method) goto err400;
+	
+	REDIS rh = NULL;
 
 	// TODO: need to detect proxy use?
 	// That is, can REQUEST_URI come through as
@@ -109,6 +115,8 @@ int main( int argc, char ** argv ) {
 					// if "todos" is final slug
 					if(method && !strcmp("POST",method)) {
 
+						ensure_redis_connection( &rh );
+
 					} else goto err405;
 
 				}
@@ -123,8 +131,8 @@ int main( int argc, char ** argv ) {
 	
 
 
+	ensure_redis_closed( &rh );
 
-	credis_close(rh);
 
 	return 0;
 
