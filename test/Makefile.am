@@ -26,6 +26,11 @@ uniqueslug_CPPFLAGS = -I$(top_srcdir)/src
 urldecode_LDADD = ../src/libcore.a
 urldecode_CPPFLAGS = -I$(top_srcdir)/src
 
+# TODO: find portable alternative to using pgrep
+# Note: a test returning 77 is considered 'skipped'
+SKIP_IF_REDIS_NOT_AVAILABLE = \
+	echo "pgrep redis-server || exit 77" >> $@
+
 COMMON_ECHO = \
 	echo "TODO_TESTS=anyvalue" >> $@ \
 	&& echo "export TODO_TESTS" >> $@ \
