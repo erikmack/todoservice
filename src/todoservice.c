@@ -10,7 +10,7 @@
 #define VERSION_CONTENT XML_HEADER "<version major=\"" TOSTRING(API_VERSION_MAJOR) \
 	"\" minor=\"" TOSTRING(API_VERSION_MINOR) "\" age=\"" TOSTRING(API_VERSION_AGE) "\" />"	
 
-int main() {
+int main( int argc, char ** argv ) {
 
 	char * err_format = 
 		"HTTP/1.1 %d %s\r\n"
@@ -23,7 +23,30 @@ int main() {
 	
 	REDIS rh;
 
-	rh = credis_connect(REDIS_HOST, REDIS_PORT, 2000);
+	// Unit tests set this variable, so that unit tests
+	// can manipulate data freely without clobbering live data
+	char * is_test = getenv("TODO_TESTS");
+	char * host;
+	int port, db_index;
+
+	if( is_test ) {
+		host = REDIS_TESTS_HOST;
+		port = REDIS_TESTS_PORT;
+		db_index = REDIS_TESTS_INDEX;
+	} else {
+		host = REDIS_HOST;
+		port = REDIS_PORT;
+		db_index = REDIS_INDEX;
+	}
+
+	rh = credis_connect( host , port , REDIS_CONNECT_TIMEOUT );
+	if( !rh ) return EXIT_FAILURE;
+
+	// Switch databases if not default (0) database
+	if( db_index ) {
+		int result = credis_select( rh, db_index );
+		if( result == -1 ) return EXIT_FAILURE;
+	}
 
 
 
@@ -78,8 +101,17 @@ int main() {
 					printf(response, strlen( VERSION_CONTENT ), VERSION_CONTENT);
 				} else goto err405;
 			} else if(!strcmp("todos",slug) ) {
-
 				
+				if((slug = strtok_r( portion, "/", &portion ))) {
+					// if there are slugs following "todos"
+
+				} else { 
+					// if "todos" is final slug
+					if(method && !strcmp("POST",method)) {
+
+					} else goto err405;
+
+				}
 
 			} else goto err404;
 		}

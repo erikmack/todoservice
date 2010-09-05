@@ -46,6 +46,14 @@ AC_ARG_WITH(redis-tests-db-index,
 AC_DEFINE_UNQUOTED(REDIS_TESTS_INDEX,${tests_redis_db_index},
 	[index for redis database, as set with --with-redis-tests-db-index])
 
+# Set global redis connection timeout
+AC_ARG_WITH(redis-connect-timeout,
+	[  --with-redis-connect-timeout=i Set the connect timeout (ms) for the Redis database (default=2000)], 
+	[tests_redis_connect_timeout=${withval}], 
+	[tests_redis_connect_timeout=2000])
+AC_DEFINE_UNQUOTED(REDIS_CONNECT_TIMEOUT,${tests_redis_connect_timeout},
+	[connect timeout for redis database, as set with --with-redis-connect-timeout])
+
 # add API versioning macros to config.h
 AC_DEFINE(API_VERSION_MAJOR,1,[API Major version number, changes when API changes])
 AC_DEFINE(API_VERSION_MINOR,0,[API Minor version number, changes when API doesn't])

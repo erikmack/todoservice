@@ -27,7 +27,9 @@ urldecode_LDADD = ../src/libcore.a
 urldecode_CPPFLAGS = -I$(top_srcdir)/src
 
 COMMON_ECHO = \
-	echo "export REQUEST_URI" >> $@ \
+	echo "TODO_TESTS=anyvalue" >> $@ \
+	&& echo "export TODO_TESTS" >> $@ \
+	&& echo "export REQUEST_URI" >> $@ \
 	&& echo "export REQUEST_METHOD" >> $@ \
 	&& echo "../src/todoservice >out.txt" >> $@
 	
