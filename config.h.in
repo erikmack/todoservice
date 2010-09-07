@@ -12,6 +12,12 @@
 /* Define to 1 if you have the `credis' library (-lcredis). */
 #undef HAVE_LIBCREDIS
 
+/* max (pre-URL-decoding) content length (default=1024) from
+   --with-max-entity-length ... note that there's nothing special about the
+   default value, but it should help a request fit nicely inside a single
+   packet */
+#undef MAX_ENTITY_LENGTH
+
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 #undef NO_MINUS_C_MINUS_O
 

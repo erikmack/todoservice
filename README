@@ -14,11 +14,13 @@ Case Method Code Type Type  URI         Condition/Description
 110  GET    200       xhtml /todos      Returns list of links to items
                                         Includes HTML form for POSTing
 120  GET    500             /todos      Server error, database issue
-130  POST   200  form xhtml /todos      Returns link to new item
-140  POST   400             /todos      Posted todo in wrong format
-145  POST   415             /todos      Wrong content-type
+130. POST   200  form xhtml /todos      Returns link to new item
+                                        Duplicate todo content okay
+140. POST   400             /todos      Posted todo in wrong format
+143. POST   413             /todos      Request body larger than MAX_ENTITY_LENGTH
+145. POST   415             /todos      Wrong content-type
 150  POST   500             /todos      Server error, database issue
-160   *     405             /todos
+160.  *     405             /todos
 
 200  GET    200       xhtml /todos/{ID}
 210  GET    404             /todos/{ID} No such item
@@ -29,6 +31,7 @@ Case Method Code Type Type  URI         Condition/Description
 250  PUT    404             /todos/{ID} No such item ... note, we don't allow
                                         PUTting a new resource, we'll require POSTing
 										to the parent resource
+253  PUT    413             /todos/{ID} Request body larger than MAX_ENTITY_LENGTH
 255  PUT    415             /todos/{ID} Wrong content-type
 260  PUT    500             /todos/{ID} Server error, database issue
 270  DELETE 200             /todos/{ID}
@@ -59,3 +62,13 @@ Notes:
     xhtml = application/xhtml+xml
     form = application/x-www-form-urlencoded
         
+
+Redis Schema
+============
+ids - set of IDs (described above)
+
+id:foo:text - the text of the todo with ID 'foo'.  Does not include a
+  null-terminator character.  
+  Future releases will contain other attributes like date, tags, state, etc.
+
+

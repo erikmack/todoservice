@@ -60,7 +60,7 @@ char * url_decode( const char * raw ) {
 
 
 /* result must be free()d */
-char * create_unique_slug( const char * raw, 
+char * locate_unique_slug( const char * raw, 
 	UniqueTestFunc * is_unique, void * context_data ) {
 
 	if( !raw || !is_unique ) return NULL; // null input invalid

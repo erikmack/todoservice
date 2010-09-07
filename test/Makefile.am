@@ -1,6 +1,11 @@
 TESTS = \
 	test_case_050.sh \
 	test_case_060.sh \
+	test_case_130.sh \
+	test_case_140.sh \
+	test_case_143.sh \
+	test_case_145.sh \
+	test_case_160.sh \
 	test_case_900.sh \
 	unique_slug_01.sh \
 	unique_slug_02.sh \
@@ -21,21 +26,29 @@ CLEANFILES = $(TESTS) \
 	uniqueslug \
 	urldecode
 
+TESTS_REDIS_HOST=@tests_redis_host@
+TESTS_REDIS_PORT=@tests_redis_port@
+TESTS_REDIS_DB_INDEX=@tests_redis_db_index@
+
 uniqueslug_LDADD = ../src/libcore.a
 uniqueslug_CPPFLAGS = -I$(top_srcdir)/src
 urldecode_LDADD = ../src/libcore.a
 urldecode_CPPFLAGS = -I$(top_srcdir)/src
 
 # Note: a test returning 77 is considered 'skipped'
-SKIP_IF_REDIS_NOT_AVAILABLE = \
-	echo "pgrep redis-server || exit 77" >> $@
+DATA_TEST_INIT = \
+	echo "pgrep redis-server >/dev/null || exit 77" >> $@ \
+	&& echo "redis-cli -h $(TESTS_REDIS_HOST) -p $(TESTS_REDIS_PORT) -n $(TESTS_REDIS_DB_INDEX) FLUSHDB >/dev/null" >> $@
 
 COMMON_ECHO = \
 	echo "TODO_TESTS=anyvalue" >> $@ \
 	&& echo "export TODO_TESTS" >> $@ \
+	&& echo 'CONTENT_LENGTH=$${\#REQUEST_BODY}' >> $@ \
+	&& echo "export CONTENT_LENGTH" >> $@ \
+	&& echo "export CONTENT_TYPE" >> $@ \
 	&& echo "export REQUEST_URI" >> $@ \
 	&& echo "export REQUEST_METHOD" >> $@ \
-	&& echo "../src/todoservice >out.txt" >> $@
+	&& echo 'echo $${REQUEST_BODY} | ../src/todoservice >out.txt' >> $@
 	
 COMMON_POST_ECHO = \
 	echo "rm -f out.txt" >> $@ \
@@ -43,27 +56,75 @@ COMMON_POST_ECHO = \
 
 
 test_case_050.sh:
-	echo "REQUEST_URI=/version" > $@
+	echo "REQUEST_URI=/version" >> $@
 	echo "REQUEST_METHOD=GET" >> $@
 	$(COMMON_ECHO)
 	echo "grep \"HTTP/1.1 200 OK\" out.txt >/dev/null || exit 1" >> $@
-	echo "grep \"major=\\\"1\\\"\" out.txt >/dev/null || exit 1" >> $@
-	echo "grep \"minor=\\\"0\\\"\" out.txt >/dev/null || exit 1" >> $@
-	echo "grep \"age=\\\"0\\\"\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"major\\\">1<\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"minor\\\">0<\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"age\\\">0<\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 
 test_case_060.sh:
 	echo "REQUEST_URI=/version" > $@
 	echo "REQUEST_METHOD=PUT" >> $@
 	$(COMMON_ECHO)
-	echo "grep \"HTTP/1.1 405 Method not allowed\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"HTTP/1.1 405 Method Not Allowed\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 
+test_case_130.sh:
+	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
+	echo "REQUEST_URI=/todos" >> $@
+	echo "REQUEST_METHOD=POST" >> $@
+	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
+	$(DATA_TEST_INIT)
+	$(COMMON_ECHO)
+	echo "grep \"HTTP/1.1 200 OK\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"href=\\\"/todos/my\\\"\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+	
+test_case_140.sh:
+	echo "REQUEST_BODY=data=My+t%65st%2" > $@
+	echo "REQUEST_URI=/todos" >> $@
+	echo "REQUEST_METHOD=POST" >> $@
+	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
+	$(COMMON_ECHO)
+	echo "grep \"HTTP/1.1 400 Bad Request\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+	
+test_case_143.sh:
+	echo "REQUEST_BODY=data=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" > $@
+	echo "REQUEST_URI=/todos" >> $@
+	echo "REQUEST_METHOD=POST" >> $@
+	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
+	$(COMMON_ECHO)
+	echo "grep \"HTTP/1.1 413 Request Entity Too Large\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+	
+test_case_145.sh:
+	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
+	echo "REQUEST_URI=/todos" >> $@
+	echo "REQUEST_METHOD=POST" >> $@
+	echo "CONTENT_TYPE=application/dogs" >> $@
+	$(COMMON_ECHO)
+	echo "grep \"HTTP/1.1 415 Unsupported Media Type\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+	
+test_case_160.sh:
+	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
+	echo "REQUEST_URI=/todos" >> $@
+	echo "REQUEST_METHOD=PUT" >> $@
+	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
+	$(DATA_TEST_INIT)
+	$(COMMON_ECHO)
+	echo "grep \"HTTP/1.1 405 Method Not Allowed\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+	
 test_case_900.sh:
 	echo "REQUEST_URI=/dogs" > $@
 	echo "REQUEST_METHOD=GET" >> $@
 	$(COMMON_ECHO)
-	echo "grep \"HTTP/1.1 404 File not found\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"HTTP/1.1 404 File Not Found\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 
 unique_slug_01.sh: uniqueslug

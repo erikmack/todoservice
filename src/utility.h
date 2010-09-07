@@ -8,7 +8,7 @@ char * url_decode( const char * raw );
 
 typedef int (UniqueTestFunc)( char * test, void * context_data );
 
-char * create_unique_slug( const char * raw, 
+char * locate_unique_slug( const char * raw, 
 	UniqueTestFunc * is_unique, void * context_data );
 
 #endif // UTILITY_H_

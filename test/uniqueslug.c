@@ -37,7 +37,7 @@ int main(int argc, char ** argv ) {
 
 	char * expected = *(argv+2);
 
-	char * returned = create_unique_slug( test, &is_slug_unique, &exclusion );
+	char * returned = locate_unique_slug( test, &is_slug_unique, &exclusion );
 
 	int success = returned && !strcmp( expected, returned );
 	if(returned) {

@@ -21,3 +21,25 @@ Implement a sample client with bash/curl
 Implement sample apache vhost include, nicely commented
 
 Find portable alternative to pgrep in unit tests
+
+implement secure flag in POST, generates numeric ID to 
+keep sensitive information out of ID
+
+implement maximum content length, can return 413 on
+overflow
+
+Add configure.ac checks for all test programs: pgrep,
+redis-cli
+
+Unit tests that validate the XHTML should use an XPath tool
+not grep ... this is important for API compatibility checks
+... are there native XPath tools?  I only see Perl/Java impls
+
+Add Affero license
+
+Improved error handling for 500, at least send back the redis
+error code
+
+Determine if need to detect proxy use in request ... will Apache
+fork() an API process if request has full URI?
+
