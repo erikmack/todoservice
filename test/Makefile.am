@@ -1,6 +1,7 @@
 TESTS = \
 	test_case_050.sh \
 	test_case_060.sh \
+	test_case_110.sh \
 	test_case_130.sh \
 	test_case_140.sh \
 	test_case_143.sh \
@@ -70,6 +71,23 @@ test_case_060.sh:
 	echo "REQUEST_METHOD=PUT" >> $@
 	$(COMMON_ECHO)
 	echo "grep \"HTTP/1.1 405 Method Not Allowed\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+
+test_case_110.sh:
+	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
+	echo "REQUEST_URI=/todos" >> $@
+	echo "REQUEST_METHOD=POST" >> $@
+	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
+	$(DATA_TEST_INIT)
+	$(COMMON_ECHO)
+	echo 'echo $${REQUEST_BODY} | ../src/todoservice >/dev/null' >> $@ # Second post, identical content
+	echo 'echo $${REQUEST_BODY} | ../src/todoservice >/dev/null' >> $@ # Third post, identical content
+	echo "REQUEST_METHOD=GET" >> $@ # Now get /todos
+	echo '../src/todoservice >out.txt' >> $@
+	echo "grep \"HTTP/1.1 200 OK\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"href=\\\"/todos/my\\\"\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"href=\\\"/todos/my-test\\\"\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"href=\\\"/todos/my-test-message\\\"\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 
 test_case_130.sh:

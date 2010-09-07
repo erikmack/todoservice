@@ -11,7 +11,7 @@ Case Method Code Type Type  URI         Condition/Description
 050. GET    200       xhtml /version    API version, see below
 060.  *     405             /version
 
-110  GET    200       xhtml /todos      Returns list of links to items
+110. GET    200       xhtml /todos      Returns list of links to items
                                         Includes HTML form for POSTing
 120  GET    500             /todos      Server error, database issue
 130. POST   200  form xhtml /todos      Returns link to new item

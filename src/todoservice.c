@@ -121,7 +121,7 @@ int main( int argc, char ** argv ) {
 			if(!strcmp("version",slug) ) {
 				if(method && !strcmp("GET",method)) {
 					printf(ok_response, strlen( VERSION_CONTENT ), 
-						VERSION_CONTENT, NULL, NULL);
+						VERSION_CONTENT, "", "");
 				} else goto err405;
 			} else if(!strcmp("todos",slug) ) {
 				
@@ -199,7 +199,54 @@ int main( int argc, char ** argv ) {
 							value = NULL;
 
 						}
+					} else if(method && !strcmp("GET",method)) {
+						// Implement GET /todos collection
 
+						size_t out_len = 16;
+						char * body = malloc( out_len );
+						memset( body, 0, out_len );
+
+#define APPEND(dest,str,lenvar) \
+						while( strlen(dest) + strlen( str ) > lenvar ) \
+							dest = realloc( dest, (lenvar *= 2 ) ); \
+						sprintf( dest+strlen(dest), "%s", str );
+
+						APPEND( body, XHTML_PREFIX, out_len );
+						APPEND( body, "<ul>", out_len );
+
+						char ** ids = NULL;
+						ensure_redis_connection( &rh );
+						int count = credis_smembers( rh, "ids", &ids );
+
+						int i;
+						char * value = NULL;
+						for(i=0; i<count; i++) {
+							// strdup sucks here, but credis bulk calls
+							// seem to be reentrant
+							char * one_id = strdup(*(ids+i));
+
+							char redis_key[ 3 + strlen(one_id) + 5 + 1];
+							sprintf( redis_key, "id:%s:text", one_id );
+
+							if( credis_get( rh, redis_key, &value ) == -1) goto err500;
+							
+							APPEND( body, "<li><a href=\"/todos/", out_len );
+							APPEND( body, one_id, out_len );
+							APPEND( body, "\">", out_len );
+							APPEND( body, value, out_len );
+							APPEND( body, "</a></li>", out_len );
+							/*
+							*/
+							free( one_id );
+							
+						}
+
+						APPEND( body, "</ul>", out_len );
+						APPEND( body, XHTML_SUFFIX, out_len );
+
+						printf( ok_response, strlen(body), body, "", "" );
+
+						free( body );
 
 					} else goto err405;
 
