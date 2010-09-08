@@ -202,9 +202,8 @@ int main( int argc, char ** argv ) {
 					} else if(method && !strcmp("GET",method)) {
 						// Implement GET /todos collection
 
-						size_t out_len = 16;
+						size_t out_len = 256;
 						char * body = malloc( out_len );
-						memset( body, 0, out_len );
 
 #define APPEND(dest,str,lenvar) \
 						while( strlen(dest) + strlen( str ) > lenvar ) \
@@ -222,7 +221,7 @@ int main( int argc, char ** argv ) {
 						char * value = NULL;
 						for(i=0; i<count; i++) {
 							// strdup sucks here, but credis bulk calls
-							// seem to be reentrant
+							// seem to be non-re-entrant
 							char * one_id = strdup(*(ids+i));
 
 							char redis_key[ 3 + strlen(one_id) + 5 + 1];
@@ -243,6 +242,7 @@ int main( int argc, char ** argv ) {
 
 						APPEND( body, "</ul>", out_len );
 						APPEND( body, XHTML_SUFFIX, out_len );
+#undef APPEND
 
 						printf( ok_response, strlen(body), body, "", "" );
 
