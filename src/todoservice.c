@@ -65,7 +65,7 @@ int main( int argc, char ** argv ) {
 	REDIS rh = NULL;
 
 	char * err_format = 
-		"HTTP/1.1 %d %s\r\n"
+		"Status: %d %s\r\n"
 		"Content-Length: 0\r\n\r\n";
 
 	char * uri = getenv("REQUEST_URI");
@@ -113,7 +113,7 @@ int main( int argc, char ** argv ) {
 			is_root = 0;
 
 			char * ok_response = 
-				"HTTP/1.1 200 OK\r\n"
+				"Status: 200 OK\r\n"
 				"Content-Type: application/xhtml+xml\r\n"
 				"Content-Length: %d\r\n\r\n"
 				"%s%s%s";

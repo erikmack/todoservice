@@ -60,7 +60,7 @@ test_case_050.sh:
 	echo "REQUEST_URI=/version" >> $@
 	echo "REQUEST_METHOD=GET" >> $@
 	$(COMMON_ECHO)
-	echo "grep \"HTTP/1.1 200 OK\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
 	echo "grep \"major\\\">1<\" out.txt >/dev/null || exit 1" >> $@
 	echo "grep \"minor\\\">0<\" out.txt >/dev/null || exit 1" >> $@
 	echo "grep \"age\\\">0<\" out.txt >/dev/null || exit 1" >> $@
@@ -70,7 +70,7 @@ test_case_060.sh:
 	echo "REQUEST_URI=/version" > $@
 	echo "REQUEST_METHOD=PUT" >> $@
 	$(COMMON_ECHO)
-	echo "grep \"HTTP/1.1 405 Method Not Allowed\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Status: 405 Method Not Allowed\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 
 test_case_110.sh:
@@ -84,7 +84,7 @@ test_case_110.sh:
 	echo 'echo $${REQUEST_BODY} | ../src/todoservice >/dev/null' >> $@ # Third post, identical content
 	echo "REQUEST_METHOD=GET" >> $@ # Now get /todos
 	echo '../src/todoservice >out.txt' >> $@
-	echo "grep \"HTTP/1.1 200 OK\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
 	echo "grep \"href=\\\"/todos/my\\\"\" out.txt >/dev/null || exit 1" >> $@
 	echo "grep \"href=\\\"/todos/my-test\\\"\" out.txt >/dev/null || exit 1" >> $@
 	echo "grep \"href=\\\"/todos/my-test-message\\\"\" out.txt >/dev/null || exit 1" >> $@
@@ -97,7 +97,7 @@ test_case_130.sh:
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(DATA_TEST_INIT)
 	$(COMMON_ECHO)
-	echo "grep \"HTTP/1.1 200 OK\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
 	echo "grep \"href=\\\"/todos/my\\\"\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 	
@@ -107,7 +107,7 @@ test_case_140.sh:
 	echo "REQUEST_METHOD=POST" >> $@
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(COMMON_ECHO)
-	echo "grep \"HTTP/1.1 400 Bad Request\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Status: 400 Bad Request\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 	
 test_case_143.sh:
@@ -116,7 +116,7 @@ test_case_143.sh:
 	echo "REQUEST_METHOD=POST" >> $@
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(COMMON_ECHO)
-	echo "grep \"HTTP/1.1 413 Request Entity Too Large\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Status: 413 Request Entity Too Large\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 	
 test_case_145.sh:
@@ -125,7 +125,7 @@ test_case_145.sh:
 	echo "REQUEST_METHOD=POST" >> $@
 	echo "CONTENT_TYPE=application/dogs" >> $@
 	$(COMMON_ECHO)
-	echo "grep \"HTTP/1.1 415 Unsupported Media Type\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Status: 415 Unsupported Media Type\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 	
 test_case_160.sh:
@@ -135,14 +135,14 @@ test_case_160.sh:
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(DATA_TEST_INIT)
 	$(COMMON_ECHO)
-	echo "grep \"HTTP/1.1 405 Method Not Allowed\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Status: 405 Method Not Allowed\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 	
 test_case_900.sh:
 	echo "REQUEST_URI=/dogs" > $@
 	echo "REQUEST_METHOD=GET" >> $@
 	$(COMMON_ECHO)
-	echo "grep \"HTTP/1.1 404 File Not Found\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Status: 404 File Not Found\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 
 unique_slug_01.sh: uniqueslug
