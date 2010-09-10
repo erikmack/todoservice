@@ -16,6 +16,9 @@ Case Method Code Type Type  URI         Condition/Description
 120  GET    500             /todos      Server error, database issue
 130. POST   201  form xhtml /todos      Returns link to new item
                                         Duplicate todo content okay
+135. POST   201  form xhtml /todos      Also empty content okay, but
+										  CONTENT_LENGTH and CONTENT_TYPE
+										  are still required
 140. POST   400             /todos      Posted todo in wrong format
 143. POST   413             /todos      Request body larger than MAX_ENTITY_LENGTH
 145. POST   415             /todos      Wrong content-type
@@ -25,18 +28,20 @@ Case Method Code Type Type  URI         Condition/Description
 200. GET    200       xhtml /todos/{ID}
 210. GET    404             /todos/{ID} No such item
 220  GET    500             /todos/{ID} Server error, database issue
-230  PUT    200  form       /todos/{ID}
-240  PUT    400             /todos/{ID} Posted todo in wrong format
+230. PUT    200  form       /todos/{ID}
+235  PUT    200  form       /todos/{ID} Empty content okay
+240. PUT    400             /todos/{ID} Posted todo in wrong format
 250  PUT    404             /todos/{ID} No such item ... note, we don't allow
                                         PUTting a new resource, we'll require POSTing
 										to the parent resource
-253  PUT    413             /todos/{ID} Request body larger than MAX_ENTITY_LENGTH
-255  PUT    415             /todos/{ID} Wrong content-type
+253. PUT    413             /todos/{ID} Request body larger than MAX_ENTITY_LENGTH
+255. PUT    415             /todos/{ID} Wrong content-type
 260  PUT    500             /todos/{ID} Server error, database issue
 270  DELETE 200             /todos/{ID}
-280  DELETE 204             /todos/{ID} No such item
 290  DELETE 500             /todos/{ID} Server error, database issue
-295   *     405             /todos/{ID}
+295.  *     405             /todos/{ID}
+
+300.  *     404             /todos/*/...
   
 900.        404             *
 

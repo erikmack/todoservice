@@ -64,18 +64,145 @@ static int is_slug_unique( char * test, void * context_data ) {
 	return result==-1;
 }
 
-int main( int argc, char ** argv ) {
-
-	REDIS rh = NULL;
-
+static void fail_with_code( int http_err_code, REDIS rh ) {
+	
 	char * err_format = 
 		"Status: %d %s\r\n"
 		"Content-Length: 0\r\n\r\n";
 
+	ensure_redis_closed( &rh );
+	
+	char * message = "";
+	switch( http_err_code ) {
+	case 400:
+		message = "Bad Request";
+		break;
+	case 404:
+		message = "File Not Found";
+		break;
+	case 413:
+		message = "Request Entity Too Large";
+		break;
+	case 415:
+		message = "Unsupported Media Type";
+		break;
+	case 405:
+		message = "Method Not Allowed";
+		break;
+	case 500:
+		message = "Server Error";
+		break;
+	}
+
+	printf( err_format, http_err_code, message );
+	exit(1);
+}
+
+static void do_post( char * id /* pass NULL, id generated */, 
+	char * value, REDIS rh ) {
+	// The while loop implements optimistic concurrency
+	// guarding against a case where the requested id is
+	// reserved by another process after locate_unique_slug
+	// and before credis_sadd
+	while(1) {
+		id = locate_unique_slug( value, &is_slug_unique, rh );
+		if(credis_sadd( rh, "ids", id ) != -1) break;
+	}
+
+	char redis_key[ 3 + strlen(id) + 5 + 1];
+	sprintf( redis_key, "id:%s:text", id );
+	// TODO: this is cop-out error handling
+	if( credis_set( rh, redis_key, value )) fail_with_code( 500, rh );
+
+	int resp_len = strlen( POST_RESULT_PREFIX ) +
+	strlen( id ) + strlen( POST_RESULT_SUFFIX );
+
+	char * ok_post_response = 
+		"Status: 201 Created\r\n"
+		"Content-Type: application/xhtml+xml\r\n"
+		"Content-Length: %d\r\n"
+		"Location: /todos/%s\r\n\r\n"
+		"%s%s%s";
+
+	printf( ok_post_response, resp_len, id, 
+	POST_RESULT_PREFIX, id, POST_RESULT_SUFFIX );
+
+	if( id ) {
+		free(id);
+		id = NULL;
+	}
+}
+
+static void do_put( char * id, char * value, REDIS rh ) {
+
+	char redis_key[ 3 + strlen(id) + 5 + 1];
+	sprintf( redis_key, "id:%s:text", id );
+	// TODO: this is cop-out error handling
+	if( credis_set( rh, redis_key, value )) fail_with_code( 500, rh );
+
+	char * ok_put_response = 
+		"Status: 200 OK\r\n"
+		"Location: /todos/%s\r\n\r\n";
+
+	printf( ok_put_response, id );
+}
+
+typedef void (set_func)( char * id, char * value, REDIS rh );
+
+static void set_data( set_func * set, char * id_arg, REDIS rh ) {
+	// Parse content length
+	char * len_str = getenv("CONTENT_LENGTH");
+	if( !len_str ) fail_with_code( 400, rh );
+	char * first_invalid = NULL;
+	long len = strtol( len_str, &first_invalid, 10 );
+	if( *first_invalid ) fail_with_code( 400, rh );
+
+	if( len > MAX_ENTITY_LENGTH ) fail_with_code( 413, rh );
+
+	char * content_type = getenv("CONTENT_TYPE");
+	if( !content_type 
+		|| strcmp(content_type,"application/x-www-form-urlencoded")) 
+			fail_with_code( 415, rh );
+
+	// Read input
+	char input[ len + 1 ];
+	input[ len ] = '\0';
+	fread( input, 1, len, stdin );
+	char * inputp = input;
+
+	char * pair, * key, * value;
+	while((pair = strtok_r( inputp, "&", &inputp ))) {
+		key = strtok_r( pair, "=", &pair );
+		value = strtok_r( pair, "=", &pair );
+
+		// url-decode the data ... the new values must be freed
+		key = url_decode( key );
+		value = url_decode( value );
+		if( !key || !value ) fail_with_code( 400, rh );
+
+		if( !strcmp( "data", key ) ) {
+			ensure_redis_connection( &rh );
+			set( id_arg, value, rh );
+		}
+		
+		free( key );
+		key = NULL;
+		free( value );
+		value = NULL;
+
+	}
+
+}
+
+
+int main( int argc, char ** argv ) {
+
+	REDIS rh = NULL;
+
 	char * uri = getenv("REQUEST_URI");
 	char * method = getenv("REQUEST_METHOD");
 
-	if(!uri || !method) goto err400;
+	if(!uri || !method) fail_with_code( 400, rh );
 	
 
 	// TODO: need to detect proxy use?
@@ -95,23 +222,6 @@ int main( int argc, char ** argv ) {
 	portion = strtok_r( prefragment, "?", &prefragment );
 	if( portion ) { // means uri was non-blank
 
-		/*
-		int is_root = 1;
-		while((slug = strtok_r( portion, "/", &portion ))) {
-			is_root = 0;
-			found_slug( slug );	
-		}
-
-		char * pair, * key, * value;
-		while((pair = strtok_r( prefragment, "&", &prefragment ))) {
-			key = strtok_r( pair, "=", &pair );
-			value = strtok_r( pair, "=", &pair );
-			found_query_pair( key, value );
-		}
-		*/
-
-
-
 		int is_root = 1;
 		if((slug = strtok_r( portion, "/", &portion ))) {
 			is_root = 0;
@@ -128,110 +238,44 @@ int main( int argc, char ** argv ) {
 				"Content-Length: %d\r\n\r\n"
 				"%s%s%s%s%s";
 
-			char * ok_post_response = 
-				"Status: 201 Created\r\n"
-				"Content-Type: application/xhtml+xml\r\n"
-				"Content-Length: %d\r\n"
-				"Location: /todos/%s\r\n\r\n"
-				"%s%s%s";
-
 			if(!strcmp("version",slug) ) {
 				if(method && !strcmp("GET",method)) {
 					printf(ok_response, strlen( VERSION_CONTENT ), 
 						VERSION_CONTENT, "", "");
-				} else goto err405;
+				} else fail_with_code( 405, rh );
 			} else if(!strcmp("todos",slug) ) {
 				
 				if((slug = strtok_r( portion, "/", &portion ))) {
 					// if there are slugs following "todos"
 
-					ensure_redis_connection( &rh );
+					if( strtok_r( portion, "/", &portion ) ) fail_with_code( 404, rh );
 
-					char redis_key[ 3 + strlen(slug) + 5 + 1];
-					sprintf( redis_key, "id:%s:text", slug );
+					if(method && !strcmp("PUT",method)) {
+						set_data( &do_put, slug, rh );
+					} else if(method && !strcmp("DELETE",method)) {
 
-					char * value;
-					if( credis_get( rh, redis_key, &value ) == -1 ) goto err404;
+					} else if(method && !strcmp("GET",method)) {
+						ensure_redis_connection( &rh );
 
-					int resp_len = strlen( GET_RESULT_PREFIX ) + strlen( slug )
-						+ strlen( GET_RESULT_CENTER ) + strlen( value )
-						+ strlen( GET_RESULT_SUFFIX );
+						char redis_key[ 3 + strlen(slug) + 5 + 1];
+						sprintf( redis_key, "id:%s:text", slug );
 
-					printf( ok_single_get_response, resp_len,
-						GET_RESULT_PREFIX, slug, GET_RESULT_CENTER, value,
-						GET_RESULT_SUFFIX );
+						char * value;
+						if( credis_get( rh, redis_key, &value ) == -1 ) fail_with_code( 404, rh );
+
+						int resp_len = strlen( GET_RESULT_PREFIX ) + strlen( slug )
+							+ strlen( GET_RESULT_CENTER ) + strlen( value )
+							+ strlen( GET_RESULT_SUFFIX );
+
+						printf( ok_single_get_response, resp_len,
+							GET_RESULT_PREFIX, slug, GET_RESULT_CENTER, value,
+							GET_RESULT_SUFFIX );
+					} else fail_with_code( 405, rh );
 
 				} else { 
 					// if "todos" is final slug
 					if(method && !strcmp("POST",method)) {
-
-						// Parse content length
-						char * len_str = getenv("CONTENT_LENGTH");
-						if( !len_str ) goto err400;
-						char * first_invalid = NULL;
-						long len = strtol( len_str, &first_invalid, 10 );
-						if( *first_invalid ) goto err400;
-
-						if( len > MAX_ENTITY_LENGTH ) goto err413;
-
-						char * content_type = getenv("CONTENT_TYPE");
-						if( !content_type 
-							|| strcmp(content_type,"application/x-www-form-urlencoded")) 
-								goto err415;
-
-						// Read input
-						char input[ len + 1 ];
-						input[ len ] = '\0';
-						fread( input, 1, len, stdin );
-						char * inputp = input;
-
-						char * pair, * key, * value;
-						while((pair = strtok_r( inputp, "&", &inputp ))) {
-							key = strtok_r( pair, "=", &pair );
-							value = strtok_r( pair, "=", &pair );
-
-							// url-decode the data ... the new values must be freed
-							key = url_decode( key );
-							value = url_decode( value );
-							if( !key || !value ) goto err400;
-
-							if( !strcmp( "data", key ) ) {
-								ensure_redis_connection( &rh );
-
-								// The while loop implements optimistic concurrency
-								// guarding against a case where the requested id is
-								// reserved by another process after locate_unique_slug
-								// and before credis_sadd
-								char * id;
-								while(1) {
-									id = locate_unique_slug( value, &is_slug_unique, rh );
-									if(credis_sadd( rh, "ids", id ) != -1) break;
-								}
-								
-								char redis_key[ 3 + strlen(id) + 5 + 1];
-								sprintf( redis_key, "id:%s:text", id );
-								// TODO: this is cop-out error handling
-								if( credis_set( rh, redis_key, value )) goto err500;
-
-								int resp_len = strlen( POST_RESULT_PREFIX ) +
-									strlen( id ) + strlen( POST_RESULT_SUFFIX );
-
-								printf( ok_post_response, resp_len, id, 
-									POST_RESULT_PREFIX, id, POST_RESULT_SUFFIX );
-
-								if( id ) {
-									free(id);
-									id = NULL;
-								}
-
-							}
-							
-							free( key );
-							key = NULL;
-							free( value );
-							value = NULL;
-
-						}
+						set_data( &do_post, NULL, rh );
 					} else if(method && !strcmp("GET",method)) {
 						// Implement GET /todos collection
 
@@ -260,7 +304,7 @@ int main( int argc, char ** argv ) {
 							char redis_key[ 3 + strlen(one_id) + 5 + 1];
 							sprintf( redis_key, "id:%s:text", one_id );
 
-							if( credis_get( rh, redis_key, &value ) == -1) goto err500;
+							if( credis_get( rh, redis_key, &value ) == -1) fail_with_code( 500, rh );
 							
 							APPEND( body, "<li><a href=\"/todos/", out_len );
 							APPEND( body, one_id, out_len );
@@ -281,11 +325,11 @@ int main( int argc, char ** argv ) {
 
 						free( body );
 
-					} else goto err405;
+					} else fail_with_code( 405, rh );
 
 				}
 
-			} else goto err404;
+			} else fail_with_code( 404, rh );
 		}
 
 		if(is_root) {
@@ -293,38 +337,6 @@ int main( int argc, char ** argv ) {
 		}
 	}
 	
-
-
 	ensure_redis_closed( &rh );
 	return 0;
-
-	err400:
-		ensure_redis_closed( &rh );
-		printf(err_format,400,"Bad Request");
-		return 1;
-
-	err404:
-		ensure_redis_closed( &rh );
-		printf(err_format,404,"File Not Found");
-		return 1;
-
-	err413:
-		ensure_redis_closed( &rh );
-		printf(err_format,413,"Request Entity Too Large");
-		return 1;
-
-	err415:
-		ensure_redis_closed( &rh );
-		printf(err_format,415,"Unsupported Media Type");
-		return 1;
-
-	err405:
-		ensure_redis_closed( &rh );
-		printf(err_format,405,"Method Not Allowed");
-		return 1;
-
-	err500:
-		ensure_redis_closed( &rh );
-		printf(err_format,500,"Server Error");
-		return 1;
 }
