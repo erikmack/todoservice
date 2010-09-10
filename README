@@ -22,8 +22,8 @@ Case Method Code Type Type  URI         Condition/Description
 150  POST   500             /todos      Server error, database issue
 160.  *     405             /todos
 
-200  GET    200       xhtml /todos/{ID}
-210  GET    404             /todos/{ID} No such item
+200. GET    200       xhtml /todos/{ID}
+210. GET    404             /todos/{ID} No such item
 220  GET    500             /todos/{ID} Server error, database issue
 230  PUT    200  form       /todos/{ID}
 240  PUT    400             /todos/{ID} Posted todo in wrong format

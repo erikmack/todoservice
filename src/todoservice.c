@@ -18,6 +18,10 @@
 #define POST_RESULT_PREFIX XHTML_PREFIX "<a id=\"new-item-link\" href=\"/todos/"
 #define POST_RESULT_SUFFIX "\">New item</a>" XHTML_SUFFIX
 
+#define GET_RESULT_PREFIX XHTML_PREFIX "<a id=\"item-link\" href=\"/todos/"
+#define GET_RESULT_CENTER "\">"
+#define GET_RESULT_SUFFIX "</a>" XHTML_SUFFIX
+
 static void ensure_redis_connection( REDIS * rhp ) {
 	// Only need to run once
 	if( *rhp ) return;
@@ -118,6 +122,12 @@ int main( int argc, char ** argv ) {
 				"Content-Length: %d\r\n\r\n"
 				"%s%s%s";
 
+			char * ok_single_get_response = 
+				"Status: 200 OK\r\n"
+				"Content-Type: application/xhtml+xml\r\n"
+				"Content-Length: %d\r\n\r\n"
+				"%s%s%s%s%s";
+
 			char * ok_post_response = 
 				"Status: 201 Created\r\n"
 				"Content-Type: application/xhtml+xml\r\n"
@@ -134,6 +144,22 @@ int main( int argc, char ** argv ) {
 				
 				if((slug = strtok_r( portion, "/", &portion ))) {
 					// if there are slugs following "todos"
+
+					ensure_redis_connection( &rh );
+
+					char redis_key[ 3 + strlen(slug) + 5 + 1];
+					sprintf( redis_key, "id:%s:text", slug );
+
+					char * value;
+					if( credis_get( rh, redis_key, &value ) == -1 ) goto err404;
+
+					int resp_len = strlen( GET_RESULT_PREFIX ) + strlen( slug )
+						+ strlen( GET_RESULT_CENTER ) + strlen( value )
+						+ strlen( GET_RESULT_SUFFIX );
+
+					printf( ok_single_get_response, resp_len,
+						GET_RESULT_PREFIX, slug, GET_RESULT_CENTER, value,
+						GET_RESULT_SUFFIX );
 
 				} else { 
 					// if "todos" is final slug
