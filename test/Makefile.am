@@ -80,6 +80,8 @@ test_case_110.sh:
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(DATA_TEST_INIT)
 	$(COMMON_ECHO)
+	echo "grep \"Status: 201 Created\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Location: /todos/my\" out.txt >/dev/null || exit 1" >> $@
 	echo 'echo $${REQUEST_BODY} | ../src/todoservice >/dev/null' >> $@ # Second post, identical content
 	echo 'echo $${REQUEST_BODY} | ../src/todoservice >/dev/null' >> $@ # Third post, identical content
 	echo "REQUEST_METHOD=GET" >> $@ # Now get /todos
@@ -97,7 +99,8 @@ test_case_130.sh:
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(DATA_TEST_INIT)
 	$(COMMON_ECHO)
-	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Location: /todos/my\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Status: 201 Created\" out.txt >/dev/null || exit 1" >> $@
 	echo "grep \"href=\\\"/todos/my\\\"\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 	

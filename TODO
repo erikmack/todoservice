@@ -43,8 +43,6 @@ error code
 Determine if need to detect proxy use in request ... will Apache
 fork() an API process if request has full URI?
 
-Implement 201 for POST, with Location header
-
 Should PUT and DELETE return 204?
 
 handle error from fread

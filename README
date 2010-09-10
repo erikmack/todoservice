@@ -14,7 +14,7 @@ Case Method Code Type Type  URI         Condition/Description
 110. GET    200       xhtml /todos      Returns list of links to items
                                         Includes HTML form for POSTing
 120  GET    500             /todos      Server error, database issue
-130. POST   200  form xhtml /todos      Returns link to new item
+130. POST   201  form xhtml /todos      Returns link to new item
                                         Duplicate todo content okay
 140. POST   400             /todos      Posted todo in wrong format
 143. POST   413             /todos      Request body larger than MAX_ENTITY_LENGTH
@@ -24,7 +24,6 @@ Case Method Code Type Type  URI         Condition/Description
 
 200  GET    200       xhtml /todos/{ID}
 210  GET    404             /todos/{ID} No such item
-215  GET    410             /todos/{ID} Gone (item ID < current highest)
 220  GET    500             /todos/{ID} Server error, database issue
 230  PUT    200  form       /todos/{ID}
 240  PUT    400             /todos/{ID} Posted todo in wrong format

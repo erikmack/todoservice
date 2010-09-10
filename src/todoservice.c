@@ -118,6 +118,13 @@ int main( int argc, char ** argv ) {
 				"Content-Length: %d\r\n\r\n"
 				"%s%s%s";
 
+			char * ok_post_response = 
+				"Status: 201 Created\r\n"
+				"Content-Type: application/xhtml+xml\r\n"
+				"Content-Length: %d\r\n"
+				"Location: /todos/%s\r\n\r\n"
+				"%s%s%s";
+
 			if(!strcmp("version",slug) ) {
 				if(method && !strcmp("GET",method)) {
 					printf(ok_response, strlen( VERSION_CONTENT ), 
@@ -183,8 +190,8 @@ int main( int argc, char ** argv ) {
 								int resp_len = strlen( POST_RESULT_PREFIX ) +
 									strlen( id ) + strlen( POST_RESULT_SUFFIX );
 
-								printf( ok_response, resp_len, POST_RESULT_PREFIX,
-									id, POST_RESULT_SUFFIX );
+								printf( ok_post_response, resp_len, id, 
+									POST_RESULT_PREFIX, id, POST_RESULT_SUFFIX );
 
 								if( id ) {
 									free(id);
