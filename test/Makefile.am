@@ -202,7 +202,15 @@ test_case_200.sh:
 	$(COMMON_POST_ECHO)
 
 test_case_210.sh:
-	echo "REQUEST_URI=/todos/hey" > $@
+	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
+	echo "REQUEST_URI=/todos" >> $@
+	echo "REQUEST_METHOD=POST" >> $@
+	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
+	$(DATA_TEST_INIT)
+	$(COMMON_ECHO)
+	echo "grep \"Status: 201 Created\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Location: /todos/my\" out.txt >/dev/null || exit 1" >> $@
+	echo "REQUEST_URI=/todos/hey" >> $@
 	echo "REQUEST_METHOD=GET" >> $@
 	$(COMMON_ECHO)
 	echo "grep \"Status: 404 File Not Found\" out.txt >/dev/null || exit 1" >> $@
