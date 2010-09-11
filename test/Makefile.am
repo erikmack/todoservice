@@ -1,4 +1,6 @@
 TESTS = \
+	test_case_010.sh \
+	test_case_020.sh \
 	test_case_050.sh \
 	test_case_060.sh \
 	test_case_110.sh \
@@ -11,9 +13,12 @@ TESTS = \
 	test_case_200.sh \
 	test_case_210.sh \
 	test_case_230.sh \
+	test_case_235.sh \
 	test_case_240.sh \
+	test_case_250.sh \
 	test_case_253.sh \
 	test_case_255.sh \
+	test_case_270.sh \
 	test_case_295.sh \
 	test_case_300.sh \
 	test_case_900.sh \
@@ -35,7 +40,9 @@ check_PROGRAMS = \
 CLEANFILES = $(TESTS) \
 	out.txt \
 	uniqueslug \
-	urldecode
+	urldecode \
+	core \
+	tmp.txt
 
 TESTS_REDIS_HOST=@tests_redis_host@
 TESTS_REDIS_PORT=@tests_redis_port@
@@ -66,8 +73,24 @@ COMMON_POST_ECHO = \
 	&& chmod +x $@
 
 
+test_case_010.sh:
+	echo "REQUEST_URI=/" > $@
+	echo "REQUEST_METHOD=GET" >> $@
+	$(COMMON_ECHO)
+	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"/todos\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"/version\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+
+test_case_020.sh:
+	echo "REQUEST_URI=/" > $@
+	echo "REQUEST_METHOD=PUT" >> $@
+	$(COMMON_ECHO)
+	echo "grep \"Status: 405 Method Not Allowed\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+
 test_case_050.sh:
-	echo "REQUEST_URI=/version" >> $@
+	echo "REQUEST_URI=/version" > $@
 	echo "REQUEST_METHOD=GET" >> $@
 	$(COMMON_ECHO)
 	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
@@ -207,6 +230,27 @@ test_case_230.sh:
 	echo "grep \"monster\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 
+test_case_235.sh:
+	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
+	echo "REQUEST_URI=/todos" >> $@
+	echo "REQUEST_METHOD=POST" >> $@
+	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
+	$(DATA_TEST_INIT)
+	$(COMMON_ECHO)
+	echo "grep \"Status: 201 Created\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Location: /todos/my\" out.txt >/dev/null || exit 1" >> $@
+	echo "REQUEST_BODY=data=" >> $@
+	echo "REQUEST_URI=/todos/my" >> $@
+	echo "REQUEST_METHOD=PUT" >> $@
+	echo 'CONTENT_LENGTH=$${#REQUEST_BODY}' >> $@
+	echo 'echo $${REQUEST_BODY} | ../src/todoservice >out.txt' >> $@
+	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
+	echo "REQUEST_BODY=" >> $@
+	echo "REQUEST_METHOD=GET" >> $@
+	echo 'echo $${REQUEST_BODY} | ../src/todoservice >out.txt' >> $@
+	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+
 test_case_240.sh:
 	echo "REQUEST_BODY=data=My+t%65st%2" > $@
 	echo "REQUEST_URI=/todos/my" >> $@
@@ -214,6 +258,16 @@ test_case_240.sh:
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(COMMON_ECHO)
 	echo "grep \"Status: 400 Bad Request\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+	
+test_case_250.sh:
+	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
+	echo "REQUEST_URI=/todos/hey" >> $@
+	echo "REQUEST_METHOD=PUT" >> $@
+	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
+	$(DATA_TEST_INIT)
+	$(COMMON_ECHO)
+	echo "grep \"Status: 404 File Not Found\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 	
 test_case_253.sh:
@@ -234,6 +288,25 @@ test_case_255.sh:
 	echo "grep \"Status: 415 Unsupported Media Type\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 	
+test_case_270.sh:
+	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
+	echo "REQUEST_URI=/todos" >> $@
+	echo "REQUEST_METHOD=POST" >> $@
+	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
+	$(DATA_TEST_INIT)
+	$(COMMON_ECHO)
+	echo "grep \"Status: 201 Created\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Location: /todos/my\" out.txt >/dev/null || exit 1" >> $@
+	echo "REQUEST_URI=/todos/my" >> $@
+	echo "REQUEST_METHOD=DELETE" >> $@
+	echo '../src/todoservice >out.txt' >> $@
+	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
+	echo "REQUEST_BODY=" >> $@
+	echo "REQUEST_METHOD=GET" >> $@
+	echo '../src/todoservice >out.txt' >> $@
+	echo "grep \"Status: 404 File Not Found\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+
 test_case_295.sh:
 	echo "REQUEST_URI=/todos/cat" > $@
 	echo "REQUEST_METHOD=POST" >> $@

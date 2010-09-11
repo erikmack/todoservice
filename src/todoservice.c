@@ -22,6 +22,8 @@
 #define GET_RESULT_CENTER "\">"
 #define GET_RESULT_SUFFIX "</a>" XHTML_SUFFIX
 
+#define ROOT_PATH_CONTENT XHTML_PREFIX "<p><a id=\"todos-link\" href=\"/todos\">View todos</a></p><p><a id=\"version-link\" href=\"/version\">Version information</a></p>" XHTML_SUFFIX
+
 static void ensure_redis_connection( REDIS * rhp ) {
 	// Only need to run once
 	if( *rhp ) return;
@@ -140,8 +142,11 @@ static void do_put( char * id, char * value, REDIS rh ) {
 
 	char redis_key[ 3 + strlen(id) + 5 + 1];
 	sprintf( redis_key, "id:%s:text", id );
-	// TODO: this is cop-out error handling
-	if( credis_set( rh, redis_key, value )) fail_with_code( 500, rh );
+
+	char * oldval;
+	int status = credis_getset( rh, redis_key, value, &oldval );
+	if( status==-1 ) fail_with_code( 404, rh );
+	else if( status ) fail_with_code( 500, rh );
 
 	char * ok_put_response = 
 		"Status: 200 OK\r\n"
@@ -152,6 +157,9 @@ static void do_put( char * id, char * value, REDIS rh ) {
 
 typedef void (set_func)( char * id, char * value, REDIS rh );
 
+/* 
+ * Handles common tasks for PUT and POST, where set() pulls the trigger
+ */
 static void set_data( set_func * set, char * id_arg, REDIS rh ) {
 	// Parse content length
 	char * len_str = getenv("CONTENT_LENGTH");
@@ -228,15 +236,15 @@ int main( int argc, char ** argv ) {
 	portion = strtok_r( prefragment, "?", &prefragment );
 	if( portion ) { // means uri was non-blank
 
+		char * ok_response = 
+			"Status: 200 OK\r\n"
+			"Content-Type: application/xhtml+xml\r\n"
+			"Content-Length: %d\r\n\r\n"
+			"%s%s%s";
+
 		int is_root = 1;
 		if((slug = strtok_r( portion, "/", &portion ))) {
 			is_root = 0;
-
-			char * ok_response = 
-				"Status: 200 OK\r\n"
-				"Content-Type: application/xhtml+xml\r\n"
-				"Content-Length: %d\r\n\r\n"
-				"%s%s%s";
 
 			char * ok_single_get_response = 
 				"Status: 200 OK\r\n"
@@ -259,7 +267,17 @@ int main( int argc, char ** argv ) {
 					if(method && !strcmp("PUT",method)) {
 						set_data( &do_put, slug, rh );
 					} else if(method && !strcmp("DELETE",method)) {
+						ensure_redis_connection( &rh );
 
+						char redis_key[ 3 + strlen(slug) + 5 + 1];
+						sprintf( redis_key, "id:%s:text", slug );
+
+						int status = credis_del( rh, redis_key );
+						if( status == 0 /* removed */
+						    || status == -1 /* didn't exist */ ) {
+
+							printf( "Status: 200 OK\r\nContent-Length: 0\r\n\r\n");
+						} else fail_with_code( 500, rh );
 					} else if(method && !strcmp("GET",method)) {
 						ensure_redis_connection( &rh );
 
@@ -317,10 +335,8 @@ int main( int argc, char ** argv ) {
 							APPEND( body, "\">", out_len );
 							APPEND( body, value, out_len );
 							APPEND( body, "</a></li>", out_len );
-							/*
-							*/
+
 							free( one_id );
-							
 						}
 
 						APPEND( body, "</ul>", out_len );
@@ -340,6 +356,10 @@ int main( int argc, char ** argv ) {
 
 		if(is_root) {
 			// Handle request for root path /
+			if(method && !strcmp("GET",method)) {
+				printf( ok_response, strlen( ROOT_PATH_CONTENT ), 
+					ROOT_PATH_CONTENT, "", "");
+			} else fail_with_code( 405, rh );
 		}
 	}
 	

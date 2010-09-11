@@ -5,8 +5,8 @@ URI Specification
 Test             Req  Resp
 Case Method Code Type Type  URI         Condition/Description
 ---- ------ ---- ---- ----  ---         ---------------------
-010  GET    200       xhtml /           Links (<a...>) to /todos and /version
-020   *     405             /
+010. GET    200       xhtml /           Links (<a...>) to /todos and /version
+020.  *     405             /
   
 050. GET    200       xhtml /version    API version, see below
 060.  *     405             /version
@@ -29,15 +29,15 @@ Case Method Code Type Type  URI         Condition/Description
 210. GET    404             /todos/{ID} No such item
 220  GET    500             /todos/{ID} Server error, database issue
 230. PUT    200  form       /todos/{ID}
-235  PUT    200  form       /todos/{ID} Empty content okay
+235. PUT    200  form       /todos/{ID} Empty content okay
 240. PUT    400             /todos/{ID} Posted todo in wrong format
-250  PUT    404             /todos/{ID} No such item ... note, we don't allow
+250. PUT    404             /todos/{ID} No such item ... note, we don't allow
                                         PUTting a new resource, we'll require POSTing
 										to the parent resource
 253. PUT    413             /todos/{ID} Request body larger than MAX_ENTITY_LENGTH
 255. PUT    415             /todos/{ID} Wrong content-type
 260  PUT    500             /todos/{ID} Server error, database issue
-270  DELETE 200             /todos/{ID}
+270. DELETE 200             /todos/{ID}
 290  DELETE 500             /todos/{ID} Server error, database issue
 295.  *     405             /todos/{ID}
 
@@ -65,6 +65,9 @@ Notes:
 - Content types:
     xhtml = application/xhtml+xml
     form = application/x-www-form-urlencoded
+
+- The . after the test case (ex. "900." ) means a unit test exists for
+  this case.
         
 
 Redis Schema
