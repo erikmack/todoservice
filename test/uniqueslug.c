@@ -10,7 +10,7 @@ struct exclude {
 
 static int is_slug_unique( char * test, void * context_data ) {
 
-	if( !test ) return 0;
+	if( !test || !(*test) ) return 0;
 	
 	struct exclude * exclusions = (struct exclude *)context_data;
 

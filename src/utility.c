@@ -8,6 +8,8 @@
 /* result must be free()d */
 char * url_decode( const char * raw ) {
 
+	if( !raw ) return NULL;
+
 	size_t sz = strlen( raw ) + 1;
 	char * result = malloc( sz );
 	memset( result, 0, sz );
@@ -109,14 +111,15 @@ char * locate_unique_slug( const char * raw,
 	else {
 
 		// Append - if preceding char wasn't -
-		if( *(result + strlen(result) - 1) != '-' ) {
+		if( *result && *(result + strlen(result) - 1) != '-' ) {
 			*(result + strlen(result)) = '-';
 		}
 
 		char * digits_start_here = result + strlen(result);
 
-		int index;
-		for(index = 2; index <= MAX_INDEX; index++ ) {
+		int index = 2;
+		if( !*result ) index = 1;
+		for(; index <= MAX_INDEX; index++ ) {
 			memset( digits_start_here, 0, max_index_str_len );
 			snprintf( digits_start_here, max_index_str_len, "%d", index );
 			if( is_unique( result, context_data ) ) return result;

@@ -58,6 +58,9 @@ static void ensure_redis_closed( REDIS * rhp ) {
 }
 
 static int is_slug_unique( char * test, void * context_data ) {
+	
+	if( !test || !(*test) ) return 0;
+
 	// Assume here that connection was established
 	REDIS rh = (REDIS)context_data;
 	int result = credis_sismember( rh, "ids", test );
@@ -174,6 +177,9 @@ static void set_data( set_func * set, char * id_arg, REDIS rh ) {
 	while((pair = strtok_r( inputp, "&", &inputp ))) {
 		key = strtok_r( pair, "=", &pair );
 		value = strtok_r( pair, "=", &pair );
+
+		if( !key ) key = "";
+		if( !value ) value = "";
 
 		// url-decode the data ... the new values must be freed
 		key = url_decode( key );

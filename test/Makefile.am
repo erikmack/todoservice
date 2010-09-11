@@ -115,7 +115,7 @@ test_case_130.sh:
 	$(COMMON_POST_ECHO)
 	
 test_case_135.sh:
-	echo "REQUEST_BODY=" > $@
+	echo "REQUEST_BODY=data=" > $@
 	echo "REQUEST_URI=/todos" >> $@
 	echo "REQUEST_METHOD=POST" >> $@
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
