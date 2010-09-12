@@ -62,9 +62,11 @@ COMMON_ECHO = \
 	echo "TODO_TESTS=anyvalue" >> $@ \
 	&& echo "export TODO_TESTS" >> $@ \
 	&& echo 'CONTENT_LENGTH=$${\#REQUEST_BODY}' >> $@ \
+	&& echo "SCRIPT_NAME=/api" >> $@ \
+	&& echo "export SCRIPT_NAME" >> $@ \
 	&& echo "export CONTENT_LENGTH" >> $@ \
 	&& echo "export CONTENT_TYPE" >> $@ \
-	&& echo "export REQUEST_URI" >> $@ \
+	&& echo "export PATH_INFO" >> $@ \
 	&& echo "export REQUEST_METHOD" >> $@ \
 	&& echo 'echo $${REQUEST_BODY} | ../src/todoservice >out.txt' >> $@
 	
@@ -74,7 +76,7 @@ COMMON_POST_ECHO = \
 
 
 test_case_010.sh:
-	echo "REQUEST_URI=/" > $@
+	echo "PATH_INFO=/" > $@
 	echo "REQUEST_METHOD=GET" >> $@
 	$(COMMON_ECHO)
 	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
@@ -83,14 +85,14 @@ test_case_010.sh:
 	$(COMMON_POST_ECHO)
 
 test_case_020.sh:
-	echo "REQUEST_URI=/" > $@
+	echo "PATH_INFO=/" > $@
 	echo "REQUEST_METHOD=PUT" >> $@
 	$(COMMON_ECHO)
 	echo "grep \"Status: 405 Method Not Allowed\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 
 test_case_050.sh:
-	echo "REQUEST_URI=/version" > $@
+	echo "PATH_INFO=/version" > $@
 	echo "REQUEST_METHOD=GET" >> $@
 	$(COMMON_ECHO)
 	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
@@ -100,7 +102,7 @@ test_case_050.sh:
 	$(COMMON_POST_ECHO)
 
 test_case_060.sh:
-	echo "REQUEST_URI=/version" > $@
+	echo "PATH_INFO=/version" > $@
 	echo "REQUEST_METHOD=PUT" >> $@
 	$(COMMON_ECHO)
 	echo "grep \"Status: 405 Method Not Allowed\" out.txt >/dev/null || exit 1" >> $@
@@ -108,50 +110,50 @@ test_case_060.sh:
 
 test_case_110.sh:
 	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
-	echo "REQUEST_URI=/todos" >> $@
+	echo "PATH_INFO=/todos" >> $@
 	echo "REQUEST_METHOD=POST" >> $@
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(DATA_TEST_INIT)
 	$(COMMON_ECHO)
 	echo "grep \"Status: 201 Created\" out.txt >/dev/null || exit 1" >> $@
-	echo "grep \"Location: /todos/my\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Location: /api/todos/my\" out.txt >/dev/null || exit 1" >> $@
 	echo 'echo $${REQUEST_BODY} | ../src/todoservice >/dev/null' >> $@ # Second post, identical content
 	echo 'echo $${REQUEST_BODY} | ../src/todoservice >/dev/null' >> $@ # Third post, identical content
 	echo "REQUEST_METHOD=GET" >> $@ # Now get /todos
 	echo '../src/todoservice >out.txt' >> $@
 	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
-	echo "grep \"href=\\\"/todos/my\\\"\" out.txt >/dev/null || exit 1" >> $@
-	echo "grep \"href=\\\"/todos/my-test\\\"\" out.txt >/dev/null || exit 1" >> $@
-	echo "grep \"href=\\\"/todos/my-test-message\\\"\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"href=\\\"/api/todos/my\\\"\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"href=\\\"/api/todos/my-test\\\"\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"href=\\\"/api/todos/my-test-message\\\"\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 
 test_case_130.sh:
 	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
-	echo "REQUEST_URI=/todos" >> $@
+	echo "PATH_INFO=/todos" >> $@
 	echo "REQUEST_METHOD=POST" >> $@
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(DATA_TEST_INIT)
 	$(COMMON_ECHO)
-	echo "grep \"Location: /todos/my\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Location: /api/todos/my\" out.txt >/dev/null || exit 1" >> $@
 	echo "grep \"Status: 201 Created\" out.txt >/dev/null || exit 1" >> $@
-	echo "grep \"href=\\\"/todos/my\\\"\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"href=\\\"/api/todos/my\\\"\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 	
 test_case_135.sh:
 	echo "REQUEST_BODY=data=" > $@
-	echo "REQUEST_URI=/todos" >> $@
+	echo "PATH_INFO=/todos" >> $@
 	echo "REQUEST_METHOD=POST" >> $@
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(DATA_TEST_INIT)
 	$(COMMON_ECHO)
-	echo "grep \"Location: /todos/1\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Location: /api/todos/1\" out.txt >/dev/null || exit 1" >> $@
 	echo "grep \"Status: 201 Created\" out.txt >/dev/null || exit 1" >> $@
-	echo "grep \"href=\\\"/todos/1\\\"\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"href=\\\"/api/todos/1\\\"\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 	
 test_case_140.sh:
 	echo "REQUEST_BODY=data=My+t%65st%2" > $@
-	echo "REQUEST_URI=/todos" >> $@
+	echo "PATH_INFO=/todos" >> $@
 	echo "REQUEST_METHOD=POST" >> $@
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(COMMON_ECHO)
@@ -160,7 +162,7 @@ test_case_140.sh:
 	
 test_case_143.sh:
 	echo "REQUEST_BODY=data=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" > $@
-	echo "REQUEST_URI=/todos" >> $@
+	echo "PATH_INFO=/todos" >> $@
 	echo "REQUEST_METHOD=POST" >> $@
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(COMMON_ECHO)
@@ -169,7 +171,7 @@ test_case_143.sh:
 	
 test_case_145.sh:
 	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
-	echo "REQUEST_URI=/todos" >> $@
+	echo "PATH_INFO=/todos" >> $@
 	echo "REQUEST_METHOD=POST" >> $@
 	echo "CONTENT_TYPE=application/dogs" >> $@
 	$(COMMON_ECHO)
@@ -178,7 +180,7 @@ test_case_145.sh:
 	
 test_case_160.sh:
 	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
-	echo "REQUEST_URI=/todos" >> $@
+	echo "PATH_INFO=/todos" >> $@
 	echo "REQUEST_METHOD=PUT" >> $@
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(DATA_TEST_INIT)
@@ -188,14 +190,14 @@ test_case_160.sh:
 
 test_case_200.sh:
 	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
-	echo "REQUEST_URI=/todos" >> $@
+	echo "PATH_INFO=/todos" >> $@
 	echo "REQUEST_METHOD=POST" >> $@
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(DATA_TEST_INIT)
 	$(COMMON_ECHO)
 	echo "grep \"Status: 201 Created\" out.txt >/dev/null || exit 1" >> $@
-	echo "grep \"Location: /todos/my\" out.txt >/dev/null || exit 1" >> $@
-	echo "REQUEST_URI=/todos/my" >> $@
+	echo "grep \"Location: /api/todos/my\" out.txt >/dev/null || exit 1" >> $@
+	echo "PATH_INFO=/todos/my" >> $@
 	echo "REQUEST_METHOD=GET" >> $@
 	$(COMMON_ECHO)
 	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
@@ -203,14 +205,14 @@ test_case_200.sh:
 
 test_case_210.sh:
 	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
-	echo "REQUEST_URI=/todos" >> $@
+	echo "PATH_INFO=/todos" >> $@
 	echo "REQUEST_METHOD=POST" >> $@
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(DATA_TEST_INIT)
 	$(COMMON_ECHO)
 	echo "grep \"Status: 201 Created\" out.txt >/dev/null || exit 1" >> $@
-	echo "grep \"Location: /todos/my\" out.txt >/dev/null || exit 1" >> $@
-	echo "REQUEST_URI=/todos/hey" >> $@
+	echo "grep \"Location: /api/todos/my\" out.txt >/dev/null || exit 1" >> $@
+	echo "PATH_INFO=/todos/hey" >> $@
 	echo "REQUEST_METHOD=GET" >> $@
 	$(COMMON_ECHO)
 	echo "grep \"Status: 404 File Not Found\" out.txt >/dev/null || exit 1" >> $@
@@ -218,15 +220,15 @@ test_case_210.sh:
 	
 test_case_230.sh:
 	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
-	echo "REQUEST_URI=/todos" >> $@
+	echo "PATH_INFO=/todos" >> $@
 	echo "REQUEST_METHOD=POST" >> $@
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(DATA_TEST_INIT)
 	$(COMMON_ECHO)
 	echo "grep \"Status: 201 Created\" out.txt >/dev/null || exit 1" >> $@
-	echo "grep \"Location: /todos/my\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Location: /api/todos/my\" out.txt >/dev/null || exit 1" >> $@
 	echo "REQUEST_BODY=data=My+t%65st%20monster" >> $@
-	echo "REQUEST_URI=/todos/my" >> $@
+	echo "PATH_INFO=/todos/my" >> $@
 	echo "REQUEST_METHOD=PUT" >> $@
 	echo 'CONTENT_LENGTH=$${#REQUEST_BODY}' >> $@
 	echo 'echo $${REQUEST_BODY} | ../src/todoservice >out.txt' >> $@
@@ -240,15 +242,15 @@ test_case_230.sh:
 
 test_case_235.sh:
 	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
-	echo "REQUEST_URI=/todos" >> $@
+	echo "PATH_INFO=/todos" >> $@
 	echo "REQUEST_METHOD=POST" >> $@
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(DATA_TEST_INIT)
 	$(COMMON_ECHO)
 	echo "grep \"Status: 201 Created\" out.txt >/dev/null || exit 1" >> $@
-	echo "grep \"Location: /todos/my\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Location: /api/todos/my\" out.txt >/dev/null || exit 1" >> $@
 	echo "REQUEST_BODY=data=" >> $@
-	echo "REQUEST_URI=/todos/my" >> $@
+	echo "PATH_INFO=/todos/my" >> $@
 	echo "REQUEST_METHOD=PUT" >> $@
 	echo 'CONTENT_LENGTH=$${#REQUEST_BODY}' >> $@
 	echo 'echo $${REQUEST_BODY} | ../src/todoservice >out.txt' >> $@
@@ -261,7 +263,7 @@ test_case_235.sh:
 
 test_case_240.sh:
 	echo "REQUEST_BODY=data=My+t%65st%2" > $@
-	echo "REQUEST_URI=/todos/my" >> $@
+	echo "PATH_INFO=/todos/my" >> $@
 	echo "REQUEST_METHOD=PUT" >> $@
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(COMMON_ECHO)
@@ -270,7 +272,7 @@ test_case_240.sh:
 	
 test_case_250.sh:
 	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
-	echo "REQUEST_URI=/todos/hey" >> $@
+	echo "PATH_INFO=/todos/hey" >> $@
 	echo "REQUEST_METHOD=PUT" >> $@
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(DATA_TEST_INIT)
@@ -280,7 +282,7 @@ test_case_250.sh:
 	
 test_case_253.sh:
 	echo "REQUEST_BODY=data=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" > $@
-	echo "REQUEST_URI=/todos/my" >> $@
+	echo "PATH_INFO=/todos/my" >> $@
 	echo "REQUEST_METHOD=PUT" >> $@
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(COMMON_ECHO)
@@ -289,7 +291,7 @@ test_case_253.sh:
 	
 test_case_255.sh:
 	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
-	echo "REQUEST_URI=/todos/my" >> $@
+	echo "PATH_INFO=/todos/my" >> $@
 	echo "REQUEST_METHOD=PUT" >> $@
 	echo "CONTENT_TYPE=application/dogs" >> $@
 	$(COMMON_ECHO)
@@ -298,14 +300,14 @@ test_case_255.sh:
 	
 test_case_270.sh:
 	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
-	echo "REQUEST_URI=/todos" >> $@
+	echo "PATH_INFO=/todos" >> $@
 	echo "REQUEST_METHOD=POST" >> $@
 	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
 	$(DATA_TEST_INIT)
 	$(COMMON_ECHO)
 	echo "grep \"Status: 201 Created\" out.txt >/dev/null || exit 1" >> $@
-	echo "grep \"Location: /todos/my\" out.txt >/dev/null || exit 1" >> $@
-	echo "REQUEST_URI=/todos/my" >> $@
+	echo "grep \"Location: /api/todos/my\" out.txt >/dev/null || exit 1" >> $@
+	echo "PATH_INFO=/todos/my" >> $@
 	echo "REQUEST_METHOD=DELETE" >> $@
 	echo '../src/todoservice >out.txt' >> $@
 	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
@@ -316,21 +318,21 @@ test_case_270.sh:
 	$(COMMON_POST_ECHO)
 
 test_case_295.sh:
-	echo "REQUEST_URI=/todos/cat" > $@
+	echo "PATH_INFO=/todos/cat" > $@
 	echo "REQUEST_METHOD=POST" >> $@
 	$(COMMON_ECHO)
 	echo "grep \"Status: 405 Method Not Allowed\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 
 test_case_300.sh:
-	echo "REQUEST_URI=/todos/my/too/far" > $@
+	echo "PATH_INFO=/todos/my/too/far" > $@
 	echo "REQUEST_METHOD=GET" >> $@
 	$(COMMON_ECHO)
 	echo "grep \"Status: 404 File Not Found\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 	
 test_case_900.sh:
-	echo "REQUEST_URI=/dogs" > $@
+	echo "PATH_INFO=/dogs" > $@
 	echo "REQUEST_METHOD=GET" >> $@
 	$(COMMON_ECHO)
 	echo "grep \"Status: 404 File Not Found\" out.txt >/dev/null || exit 1" >> $@

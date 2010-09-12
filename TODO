@@ -12,10 +12,6 @@ Implement at least one basic caching mechanism
   fixed URIs like / and /version
   ... or, just hard-code with API version parts
 
-Support hosting in sub-path.  May require stripping off 
-  first n characters of REQUEST_URI, as specified by a
-  parameter to 'configure'
-
 Implement a sample client with bash/curl
 
 Implement sample apache vhost include, nicely commented
@@ -24,9 +20,6 @@ Find portable alternative to pgrep in unit tests
 
 implement secure flag in POST, generates numeric ID to 
 keep sensitive information out of ID
-
-implement maximum content length, can return 413 on
-overflow
 
 Add configure.ac checks for all test programs: pgrep,
 redis-cli
@@ -43,6 +36,10 @@ error code
 Determine if need to detect proxy use in request ... will Apache
 fork() an API process if request has full URI?
 
-Should PUT and DELETE return 204?
-
 handle error from fread
+
+todo text should be entity-escaped in output ... < -> &lt;
+
+failures should have friendly accompanying messages
+
+add API version info to / also, or perhaps to every XHTML response

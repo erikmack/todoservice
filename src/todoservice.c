@@ -15,14 +15,18 @@
 	TOSTRING(API_VERSION_MINOR) "</span>.<span id=\"api-ver-age\">" \
 	TOSTRING(API_VERSION_AGE) "</span>"
 
-#define POST_RESULT_PREFIX XHTML_PREFIX "<a id=\"new-item-link\" href=\"/todos/"
+#define POST_RESULT_PREFIX XHTML_PREFIX "<a id=\"new-item-link\" href=\""
+#define POST_RESULT_CENTER_1 "/todos/"
 #define POST_RESULT_SUFFIX "\">New item</a>" XHTML_SUFFIX
 
-#define GET_RESULT_PREFIX XHTML_PREFIX "<a id=\"item-link\" href=\"/todos/"
-#define GET_RESULT_CENTER "\">"
+#define GET_RESULT_PREFIX XHTML_PREFIX "<a id=\"item-link\" href=\""
+#define GET_RESULT_CENTER_1 "/todos/"
+#define GET_RESULT_CENTER_2 "\">"
 #define GET_RESULT_SUFFIX "</a>" XHTML_SUFFIX
 
-#define ROOT_PATH_CONTENT XHTML_PREFIX "<p><a id=\"todos-link\" href=\"/todos\">View todos</a></p><p><a id=\"version-link\" href=\"/version\">Version information</a></p>" XHTML_SUFFIX
+#define ROOT_PATH_PREFIX XHTML_PREFIX "<p><a id=\"todos-link\" href=\""
+#define ROOT_PATH_CENTER_1 "/todos\">View todos</a></p><p><a id=\"version-link\" href=\""
+#define ROOT_PATH_SUFFIX "/version\">Version information</a></p>" XHTML_SUFFIX
 
 static void ensure_redis_connection( REDIS * rhp ) {
 	// Only need to run once
@@ -104,7 +108,7 @@ static void fail_with_code( int http_err_code, REDIS rh ) {
 }
 
 static void do_post( char * id /* pass NULL, id generated */, 
-	char * value, REDIS rh ) {
+	char * value, REDIS rh, char * script_name ) {
 	// The while loop implements optimistic concurrency
 	// guarding against a case where the requested id is
 	// reserved by another process after locate_unique_slug
@@ -119,18 +123,18 @@ static void do_post( char * id /* pass NULL, id generated */,
 	// TODO: this is cop-out error handling
 	if( credis_set( rh, redis_key, value )) fail_with_code( 500, rh );
 
-	int resp_len = strlen( POST_RESULT_PREFIX ) +
-	strlen( id ) + strlen( POST_RESULT_SUFFIX );
+	int resp_len = strlen( POST_RESULT_PREFIX POST_RESULT_CENTER_1 POST_RESULT_SUFFIX)
+		+ strlen( script_name ) + strlen( id ); 
 
 	char * ok_post_response = 
 		"Status: 201 Created\r\n"
 		"Content-Type: application/xhtml+xml\r\n"
 		"Content-Length: %d\r\n"
-		"Location: /todos/%s\r\n\r\n"
-		"%s%s%s";
+		"Location: %s/todos/%s\r\n\r\n"
+		"%s%s%s%s%s";
 
-	printf( ok_post_response, resp_len, id, 
-	POST_RESULT_PREFIX, id, POST_RESULT_SUFFIX );
+	printf( ok_post_response, resp_len, script_name, id, 
+	POST_RESULT_PREFIX, script_name, POST_RESULT_CENTER_1, id, POST_RESULT_SUFFIX );
 
 	if( id ) {
 		free(id);
@@ -138,7 +142,8 @@ static void do_post( char * id /* pass NULL, id generated */,
 	}
 }
 
-static void do_put( char * id, char * value, REDIS rh ) {
+static void do_put( char * id, char * value, REDIS rh,
+	char * script_name ) {
 
 	char redis_key[ 3 + strlen(id) + 5 + 1];
 	sprintf( redis_key, "id:%s:text", id );
@@ -150,17 +155,17 @@ static void do_put( char * id, char * value, REDIS rh ) {
 
 	char * ok_put_response = 
 		"Status: 200 OK\r\n"
-		"Location: /todos/%s\r\n\r\n";
+		"Location: %s/todos/%s\r\n\r\n";
 
-	printf( ok_put_response, id );
+	printf( ok_put_response, script_name, id );
 }
 
-typedef void (set_func)( char * id, char * value, REDIS rh );
+typedef void (set_func)( char * id, char * value, REDIS rh, char * script_name );
 
 /* 
  * Handles common tasks for PUT and POST, where set() pulls the trigger
  */
-static void set_data( set_func * set, char * id_arg, REDIS rh ) {
+static void set_data( set_func * set, char * id_arg, REDIS rh, char * script_name ) {
 	// Parse content length
 	char * len_str = getenv("CONTENT_LENGTH");
 	if( !len_str ) fail_with_code( 400, rh );
@@ -196,7 +201,7 @@ static void set_data( set_func * set, char * id_arg, REDIS rh ) {
 
 		if( !strcmp( "data", key ) ) {
 			ensure_redis_connection( &rh );
-			set( id_arg, value, rh );
+			set( id_arg, value, rh, script_name );
 		}
 		
 		free( key );
@@ -213,10 +218,21 @@ int main( int argc, char ** argv ) {
 
 	REDIS rh = NULL;
 
-	char * uri = getenv("REQUEST_URI");
+	// This is the portion of the relative path
+	// which follows the script alias
+	// ex. in /api/todos/my-test-message, 
+	//   PATH_INFO is /todos/my-test/message
+	char * uri = getenv("PATH_INFO");
+	
 	char * method = getenv("REQUEST_METHOD");
 
-	if(!uri || !method) fail_with_code( 400, rh );
+	// This is the portion of the relative path
+	// that represents the script
+	// ex. in /api/todos/my-test-message, 
+	//   SCRIPT_NAME is /api
+	char * name = getenv("SCRIPT_NAME");
+
+	if(!uri || !method || !name ) fail_with_code( 400, rh );
 	
 
 	// TODO: need to detect proxy use?
@@ -240,7 +256,7 @@ int main( int argc, char ** argv ) {
 			"Status: 200 OK\r\n"
 			"Content-Type: application/xhtml+xml\r\n"
 			"Content-Length: %d\r\n\r\n"
-			"%s%s%s";
+			"%s%s%s%s%s";
 
 		int is_root = 1;
 		if((slug = strtok_r( portion, "/", &portion ))) {
@@ -250,12 +266,12 @@ int main( int argc, char ** argv ) {
 				"Status: 200 OK\r\n"
 				"Content-Type: application/xhtml+xml\r\n"
 				"Content-Length: %d\r\n\r\n"
-				"%s%s%s%s%s";
+				"%s%s%s%s%s%s%s";
 
 			if(!strcmp("version",slug) ) {
 				if(method && !strcmp("GET",method)) {
 					printf(ok_response, strlen( VERSION_CONTENT ), 
-						VERSION_CONTENT, "", "");
+						VERSION_CONTENT, "", "", "", "");
 				} else fail_with_code( 405, rh );
 			} else if(!strcmp("todos",slug) ) {
 				
@@ -265,7 +281,7 @@ int main( int argc, char ** argv ) {
 					if( strtok_r( portion, "/", &portion ) ) fail_with_code( 404, rh );
 
 					if(method && !strcmp("PUT",method)) {
-						set_data( &do_put, slug, rh );
+						set_data( &do_put, slug, rh, name );
 					} else if(method && !strcmp("DELETE",method)) {
 						ensure_redis_connection( &rh );
 
@@ -287,19 +303,20 @@ int main( int argc, char ** argv ) {
 						char * value;
 						if( credis_get( rh, redis_key, &value ) == -1 ) fail_with_code( 404, rh );
 
-						int resp_len = strlen( GET_RESULT_PREFIX ) + strlen( slug )
-							+ strlen( GET_RESULT_CENTER ) + strlen( value )
-							+ strlen( GET_RESULT_SUFFIX );
+						int resp_len = 
+							strlen( GET_RESULT_PREFIX GET_RESULT_CENTER_1 GET_RESULT_CENTER_2 GET_RESULT_SUFFIX ) 
+							+ strlen( name ) + strlen( slug ) + strlen( value );
+						
 
 						printf( ok_single_get_response, resp_len,
-							GET_RESULT_PREFIX, slug, GET_RESULT_CENTER, value,
-							GET_RESULT_SUFFIX );
+							GET_RESULT_PREFIX, name, GET_RESULT_CENTER_1, slug, 
+							GET_RESULT_CENTER_2, value, GET_RESULT_SUFFIX );
 					} else fail_with_code( 405, rh );
 
 				} else { 
 					// if "todos" is final slug
 					if(method && !strcmp("POST",method)) {
-						set_data( &do_post, NULL, rh );
+						set_data( &do_post, NULL, rh, name );
 					} else if(method && !strcmp("GET",method)) {
 						// Implement GET /todos collection
 
@@ -330,7 +347,9 @@ int main( int argc, char ** argv ) {
 
 							if( credis_get( rh, redis_key, &value ) == -1) fail_with_code( 500, rh );
 							
-							APPEND( body, "<li><a href=\"/todos/", out_len );
+							APPEND( body, "<li><a href=\"", out_len );
+							APPEND( body, name, out_len );
+							APPEND( body, "/todos/", out_len );
 							APPEND( body, one_id, out_len );
 							APPEND( body, "\">", out_len );
 							APPEND( body, value, out_len );
@@ -343,7 +362,7 @@ int main( int argc, char ** argv ) {
 						APPEND( body, XHTML_SUFFIX, out_len );
 #undef APPEND
 
-						printf( ok_response, strlen(body), body, "", "" );
+						printf( ok_response, strlen(body), body, "", "", "", "" );
 
 						free( body );
 
@@ -357,8 +376,9 @@ int main( int argc, char ** argv ) {
 		if(is_root) {
 			// Handle request for root path /
 			if(method && !strcmp("GET",method)) {
-				printf( ok_response, strlen( ROOT_PATH_CONTENT ), 
-					ROOT_PATH_CONTENT, "", "");
+				int resp_len = strlen( ROOT_PATH_PREFIX ROOT_PATH_CENTER_1 ROOT_PATH_SUFFIX ) + ( 2 * strlen( name ) );
+				printf( ok_response, resp_len, ROOT_PATH_PREFIX, 
+					name, ROOT_PATH_CENTER_1, name, ROOT_PATH_SUFFIX);
 			} else fail_with_code( 405, rh );
 		}
 	}
