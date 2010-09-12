@@ -6,7 +6,6 @@ build*
 configure
 aclocal.m4
 autom4te.cache
-COPYING
 INSTALL
 depcomp
 install-sh

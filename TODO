@@ -28,8 +28,6 @@ Unit tests that validate the XHTML should use an XPath tool
 not grep ... this is important for API compatibility checks
 ... are there native XPath tools?  I only see Perl/Java impls
 
-Add Affero license
-
 Improved error handling for 500, at least send back the redis
 error code
 
@@ -43,3 +41,7 @@ todo text should be entity-escaped in output ... < -> &lt;
 failures should have friendly accompanying messages
 
 add API version info to / also, or perhaps to every XHTML response
+
+Add feature test macros
+
+/ contains link to source on github, for Affero compliance
