@@ -26,13 +26,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "utility.h"
 
 #define XML_HEADER "<?xml version=\"1.0\"?>"
-#define XHTML_PREFIX XML_HEADER "<html><body>"
+#define XHTML_PREFIX XML_HEADER "<html xmlns=\"http://www.w3.org/1999/xhtml\"><body>"
 #define XHTML_SUFFIX "</body></html>"
 
 #define VERSION_CONTENT XHTML_PREFIX "<p>API Version: <span id=\"api-ver-major\">" \
 	TOSTRING(API_VERSION_MAJOR) "</span>.<span id=\"api-ver-minor\">" \
 	TOSTRING(API_VERSION_MINOR) "</span>.<span id=\"api-ver-age\">" \
-	TOSTRING(API_VERSION_AGE) "</span>"
+	TOSTRING(API_VERSION_AGE) "</span></p>" XHTML_SUFFIX
 
 #define POST_RESULT_PREFIX XHTML_PREFIX "<a id=\"new-item-link\" href=\""
 #define POST_RESULT_CENTER_1 "/todos/"
