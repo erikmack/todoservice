@@ -1,6 +1,6 @@
 /*
 todoservice - a toy implementation of a RESTful "todo" service implemented
-              as a CGI program
+              as a CGI program with Redis as a data store
 Copyright (C) 2010 Free Software Foundation
 
 This program is free software: you can redistribute it and/or modify

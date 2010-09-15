@@ -14,7 +14,8 @@ Implement at least one basic caching mechanism
 
 Implement a sample client with bash/curl
 
-Implement sample apache vhost include, nicely commented
+Implement sample apache vhost include, nicely commented, 
+	also one with authentication
 
 Find portable alternative to pgrep in unit tests
 
@@ -45,3 +46,9 @@ add API version info to / also, or perhaps to every XHTML response
 Add feature test macros
 
 / contains link to source on github, for Affero compliance
+
+Improve README for general consumption
+
+ensure_redis_connection should fail_with_code
+
+Add todo-id attribute to output XHTML
