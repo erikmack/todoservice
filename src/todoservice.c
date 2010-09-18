@@ -307,12 +307,19 @@ int main( int argc, char ** argv ) {
 						char redis_key[ 3 + strlen(slug) + 5 + 1];
 						sprintf( redis_key, "id:%s:text", slug );
 
-						int status = credis_del( rh, redis_key );
+						// TODO: this isn't atomic, so inconsistencies are possible
+						int status = credis_srem( rh, "ids", slug );
 						if( status == 0 /* removed */
 						    || status == -1 /* didn't exist */ ) {
 
-							printf( "Status: 200 OK\r\nContent-Length: 0\r\n\r\n");
+							status = credis_del( rh, redis_key );
+							if( status == 0 /* removed */
+								|| status == -1 /* didn't exist */ ) {
+
+								printf( "Status: 200 OK\r\nContent-Length: 0\r\n\r\n");
+							} else fail_with_code( 500, rh );
 						} else fail_with_code( 500, rh );
+
 					} else if(method && !strcmp("GET",method)) {
 						ensure_redis_connection( &rh );
 
