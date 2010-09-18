@@ -360,13 +360,18 @@ int main( int argc, char ** argv ) {
 						char ** ids = NULL;
 						ensure_redis_connection( &rh );
 						int count = credis_smembers( rh, "ids", &ids );
+						char * ids_arr[ count ];
 
 						int i;
-						char * value = NULL;
 						for(i=0; i<count; i++) {
 							// strdup sucks here, but credis bulk calls
-							// seem to be non-re-entrant
-							char * one_id = strdup(*(ids+i));
+							// are non-re-entrant (per comments in credis.h)
+							ids_arr[i] = strdup(*(ids+i));
+						}
+
+						char * value = NULL;
+						for(i=0; i<count; i++) {
+							char * one_id = ids_arr[i];
 
 							char redis_key[ 3 + strlen(one_id) + 5 + 1];
 							sprintf( redis_key, "id:%s:text", one_id );
