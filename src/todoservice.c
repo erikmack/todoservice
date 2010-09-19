@@ -26,7 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "utility.h"
 
 #define XML_HEADER "<?xml version=\"1.0\"?>"
-#define XHTML_PREFIX XML_HEADER "<html xmlns=\"http://www.w3.org/1999/xhtml\"><body>"
+#define XHTML_PREFIX XML_HEADER "<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:t=\"http://mackdanz.net/todoservice\"><body>"
 #define XHTML_SUFFIX "</body></html>"
 
 #define VERSION_CONTENT XHTML_PREFIX "<p>API Version: <span id=\"api-ver-major\">" \
@@ -38,9 +38,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define POST_RESULT_CENTER_1 "/todos/"
 #define POST_RESULT_SUFFIX "\">New item</a>" XHTML_SUFFIX
 
-#define GET_RESULT_PREFIX XHTML_PREFIX "<a id=\"item-link\" href=\""
-#define GET_RESULT_CENTER_1 "/todos/"
-#define GET_RESULT_CENTER_2 "\">"
+#define GET_RESULT_PREFIX XHTML_PREFIX "<a t:id=\""
+#define GET_RESULT_CENTER_1 "\" href=\""
+#define GET_RESULT_CENTER_2 "/todos/"
+#define GET_RESULT_CENTER_3 "\">"
 #define GET_RESULT_SUFFIX "</a>" XHTML_SUFFIX
 
 #define ROOT_PATH_PREFIX XHTML_PREFIX "<p><a id=\"todos-link\" href=\""
@@ -285,7 +286,7 @@ int main( int argc, char ** argv ) {
 				"Status: 200 OK\r\n"
 				"Content-Type: application/xhtml+xml\r\n"
 				"Content-Length: %d\r\n\r\n"
-				"%s%s%s%s%s%s%s";
+				"%s%s%s%s%s%s%s%s%s";
 
 			if(!strcmp("version",slug) ) {
 				if(method && !strcmp("GET",method)) {
@@ -330,13 +331,14 @@ int main( int argc, char ** argv ) {
 						if( credis_get( rh, redis_key, &value ) == -1 ) fail_with_code( 404, rh );
 
 						int resp_len = 
-							strlen( GET_RESULT_PREFIX GET_RESULT_CENTER_1 GET_RESULT_CENTER_2 GET_RESULT_SUFFIX ) 
+							strlen( GET_RESULT_PREFIX GET_RESULT_CENTER_1 GET_RESULT_CENTER_2 GET_RESULT_CENTER_3 GET_RESULT_SUFFIX ) 
 							+ strlen( name ) + strlen( slug ) + strlen( value );
 						
 
 						printf( ok_single_get_response, resp_len,
-							GET_RESULT_PREFIX, name, GET_RESULT_CENTER_1, slug, 
-							GET_RESULT_CENTER_2, value, GET_RESULT_SUFFIX );
+							GET_RESULT_PREFIX, slug, GET_RESULT_CENTER_1, 
+							name, GET_RESULT_CENTER_2, slug, 
+							GET_RESULT_CENTER_3, value, GET_RESULT_SUFFIX );
 					} else fail_with_code( 405, rh );
 
 				} else { 
@@ -378,7 +380,9 @@ int main( int argc, char ** argv ) {
 
 							if( credis_get( rh, redis_key, &value ) == -1) fail_with_code( 500, rh );
 							
-							APPEND( body, "<li><a href=\"", out_len );
+							APPEND( body, "<li><a t:id=\"", out_len );
+							APPEND( body, one_id, out_len );
+							APPEND( body, "\" href=\"", out_len );
 							APPEND( body, name, out_len );
 							APPEND( body, "/todos/", out_len );
 							APPEND( body, one_id, out_len );
