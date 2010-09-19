@@ -1,0 +1,152 @@
+#!/bin/sh
+# td - an example client (using curl and xsltproc) for todoservice
+# 
+# Copyright (C) 2010 Free Software Foundation
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+# 
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+usage=false
+
+for opt; do
+	case ${opt} in
+		-h|--help) usage=true;;
+		--) break;;
+		-*) usage=true msg="unknown option '${opt}'";;
+	esac
+done
+
+if ${usage}; then
+	cat <<EOF
+td: a sample client for todoservice
+
+Usage:
+   td                                    List todos
+   td post "my todo item"                Add new item
+   td put item-id "my revised todo item" Update existing item
+   td del item-id                        Delete item
+   td --help                             Print this message
+EOF
+
+	if [ -n "${msg}" ]; then 
+		echo ${msg} 
+		exit 1
+	fi
+	exit 0
+fi
+
+
+if test -z ${TODO_BASE_URL}; then
+	echo Variable TODO_BASE_URL must be defined
+	echo Example:  add to ~/.bashrc:
+	echo export TODO_BASE_URL=http://subdir.api.example.org/api
+	exit 1
+fi
+
+list=false
+post=false
+put=false
+delete=false
+need_curl=false
+need_xsltproc=false
+
+if test $# -eq 0; then
+	list=true
+	need_curl=true
+	need_xsltproc=true
+else
+	case $1 in 
+		"post") 
+			post=true
+			need_curl=true
+			need_xsltproc=true
+			;;
+		"put") 
+			put=true
+			need_curl=true
+			need_xsltproc=true
+			;;
+		"del"|"delete") 
+			delete=true
+			need_curl=true
+			;;
+		*) echo Unrecognized command
+			exit 1
+			;;
+	esac;
+fi
+
+if ${need_curl} && ! curl --version >/dev/null 2>&1 ; then
+	echo curl required for command \"$1\"
+	exit 1 
+fi
+
+if ${need_xsltproc} && ! xsltproc --version >/dev/null 2>&1 ; then
+	echo xsltproc required for command \"$1\"
+	exit 1 
+fi
+
+CURL_ARGS=
+if ${post} || ${put}; then
+	DATA=$2
+	if ${put}; then
+		DATA=$3
+		CURL_ARGS="${CURL_ARGS} --request PUT"
+	fi
+	DATA=$(echo ${DATA} | sed -e "s/ /+/g")
+	CURL_ARGS="${CURL_ARGS} -d data=${DATA}"
+elif ${delete}; then
+	CURL_ARGS="${CURL_ARGS} --request DELETE"
+fi
+
+ITEM_ID=
+if ${put} || ${delete}; then
+	ITEM_ID=/$2
+fi
+
+CURL_COMMAND="curl ${CURL_ARGS} ${TODO_BASE_URL}/todos${ITEM_ID}"
+
+if ${list} || ${post} || ${put}; then
+	stylesheet=$(mktemp)
+	if ${list}; then
+		cat >${stylesheet} <<-EOF
+		<xsl:stylesheet version="1.0" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:t="http://mackdanz.net/todoservice">
+			<xsl:output method="text" />
+			<xsl:template match="/h:html/h:body/h:ul">
+				<xsl:for-each select="h:li/h:a" xml:space="preserve"><xsl:value-of select="@t:id" />: <xsl:value-of select="." />
+		</xsl:for-each>
+			</xsl:template>
+		</xsl:stylesheet>
+		EOF
+	elif ${post} || ${put}; then
+		cat >${stylesheet} <<-EOF
+		<xsl:stylesheet version="1.0" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:t="http://mackdanz.net/todoservice">
+			<xsl:output method="text" />
+			<xsl:template match="/h:html/h:body">
+				<xsl:for-each select="h:a" xml:space="preserve"><xsl:value-of select="@t:id" />: <xsl:value-of select="." />
+		</xsl:for-each>
+			</xsl:template>
+		</xsl:stylesheet>
+		EOF
+	fi
+
+	${CURL_COMMAND} 2>/dev/null | xsltproc ${stylesheet} -
+
+	rm -f ${stylesheet}
+
+elif ${delete}; then
+	${CURL_COMMAND} 2>/dev/null 
+fi
+

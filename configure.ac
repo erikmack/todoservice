@@ -88,5 +88,6 @@ AC_CHECK_LIB([credis], [credis_save])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
-                 test/Makefile])
+                 test/Makefile
+				 example/Makefile])
 AC_OUTPUT
