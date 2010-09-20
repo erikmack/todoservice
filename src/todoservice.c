@@ -168,10 +168,11 @@ static void do_put( char * id, char * value, REDIS rh,
 	char redis_key[ 3 + strlen(id) + 5 + 1];
 	sprintf( redis_key, "id:%s:text", id );
 
-	char * oldval;
-	int status = credis_getset( rh, redis_key, value, &oldval );
+	int status = credis_exists( rh, redis_key );
 	if( status==-1 ) fail_with_code( 404, rh );
-	else if( status ) fail_with_code( 500, rh );
+
+	status = credis_set( rh, redis_key, value );
+	if( status ) fail_with_code( 500, rh );
 
 	char * ok_put_response = 
 		"Status: 200 OK\r\n"

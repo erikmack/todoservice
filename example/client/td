@@ -142,9 +142,14 @@ if ${list} || ${post} || ${put}; then
 		EOF
 	fi
 
-	${CURL_COMMAND} 2>/dev/null | xsltproc ${stylesheet} -
+	curlout=$(mktemp)
+	${CURL_COMMAND} 2>/dev/null >${curlout}
 
-	rm -f ${stylesheet}
+	if test -s ${curlout}; then
+		xsltproc ${stylesheet} - <${curlout}
+	fi
+
+	rm -f ${stylesheet} ${curlout}
 
 elif ${delete}; then
 	${CURL_COMMAND} 2>/dev/null 

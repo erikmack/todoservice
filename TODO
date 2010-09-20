@@ -52,5 +52,3 @@ Improve README for general consumption
 ensure_redis_connection should fail_with_code
 
 Add todo-id attribute to output XHTML
-
-PUTting an invalid key can succeed, corrupting db
