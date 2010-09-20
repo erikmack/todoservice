@@ -1,1 +1,1 @@
-bin_PROGRAMS=td
+dist_bin_SCRIPTS=td

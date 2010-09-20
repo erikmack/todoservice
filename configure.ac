@@ -89,5 +89,8 @@ AC_CHECK_LIB([credis], [credis_save])
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  test/Makefile
-				 example/Makefile])
+				 example/Makefile
+				 example/client/Makefile
+				 example/apache_vhost/Makefile
+				 ])
 AC_OUTPUT

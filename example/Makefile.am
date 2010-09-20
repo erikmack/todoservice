@@ -1,1 +1,1 @@
-subdirs=client apache_vhost
+SUBDIRS = client apache_vhost
