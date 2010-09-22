@@ -6,14 +6,21 @@ Test             Req  Resp
 Case Method Code Type Type  URI         Condition/Description
 ---- ------ ---- ---- ----  ---         ---------------------
 010. GET    200       xhtml /           Links (<a...>) to /todos and /version
+013. HEAD   200             /           
+016. OPTIONS200             /           
 020.  *     405             /
   
 050. GET    200       xhtml /version    API version, see below
+053. HEAD   200             /version    
+056. OPTIONS200             /version    
 060.  *     405             /version
 
 110. GET    200       xhtml /todos      Returns list of links to items
                                         Includes HTML form for POSTing
+113. HEAD   200             /todos      
+116. OPTIONS200             /todos      
 120  GET    500             /todos      Server error, database issue
+123  HEAD   500             /todos      
 130. POST   201  form xhtml /todos      Returns link to new item
                                         Duplicate todo content okay
 135. POST   201  form xhtml /todos      Also empty content okay, but
@@ -28,6 +35,12 @@ Case Method Code Type Type  URI         Condition/Description
 200. GET    200       xhtml /todos/{ID}
 210. GET    404             /todos/{ID} No such item
 220  GET    500             /todos/{ID} Server error, database issue
+222. HEAD   200             /todos/{ID}
+223. HEAD   404             /todos/{ID}
+224  HEAD   500             /todos/{ID}
+226. OPTIONS200             /todos/{ID}
+227. OPTIONS404             /todos/{ID}
+228  OPTIONS500             /todos/{ID}
 230. PUT    200  form       /todos/{ID}
 235. PUT    200  form       /todos/{ID} Empty content okay
 240. PUT    400             /todos/{ID} Posted todo in wrong format

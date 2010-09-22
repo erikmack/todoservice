@@ -5,14 +5,10 @@ create_unique_slug should take multibyte characters
     resulting ID may be unexpected, but it will be a
 	valid and unique URI
 
-Implement HEAD for all URIs, as per RFC 3875
-
 Implement at least one basic caching mechanism
 - Requires adding build time into config.h for 
   fixed URIs like / and /version
   ... or, just hard-code with API version parts
-
-Implement a sample client with bash/curl
 
 Implement sample apache vhost include, nicely commented, 
 	also one with authentication
@@ -23,11 +19,9 @@ implement secure flag in POST, generates numeric ID to
 keep sensitive information out of ID
 
 Add configure.ac checks for all test programs: pgrep,
-redis-cli
+redis-cli, xsltproc
 
-Unit tests that validate the XHTML should use an XPath tool
-not grep ... this is important for API compatibility checks
-... are there native XPath tools?  I only see Perl/Java impls
+Unit tests that validate the XHTML should use xsltproc
 
 Improved error handling for 500, at least send back the redis
 error code
@@ -39,16 +33,12 @@ handle error from fread
 
 todo text should be entity-escaped in output ... < -> &lt;
 
-failures should have friendly accompanying messages
-
-add API version info to / also, or perhaps to every XHTML response
-
 Add feature test macros
+
+td client should test version
 
 / contains link to source on github, for Affero compliance
 
 Improve README for general consumption
 
 ensure_redis_connection should fail_with_code
-
-Add todo-id attribute to output XHTML

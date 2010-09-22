@@ -93,15 +93,17 @@ static int is_slug_unique( char * test, void * context_data ) {
 	return result==-1;
 }
 
-static void fail_with_code( int http_err_code, REDIS rh ) {
+static void fail_with_code( int http_err_code, char * extra_header, REDIS rh ) {
 	
 	char * err_format = 
 		"Status: %d %s\r\n"
+		"%s"
 		"Content-Length: 0\r\n\r\n";
 
 	ensure_redis_closed( &rh );
 	
 	char * message = "";
+	if( !extra_header ) extra_header = "";
 	switch( http_err_code ) {
 	case 400:
 		message = "Bad Request";
@@ -123,7 +125,7 @@ static void fail_with_code( int http_err_code, REDIS rh ) {
 		break;
 	}
 
-	printf( err_format, http_err_code, message );
+	printf( err_format, http_err_code, message, extra_header );
 	exit(1);
 }
 
@@ -141,7 +143,7 @@ static void do_post( char * id /* pass NULL, id generated */,
 	char redis_key[ 3 + strlen(id) + 5 + 1];
 	sprintf( redis_key, "id:%s:text", id );
 	// TODO: this is cop-out error handling
-	if( credis_set( rh, redis_key, value )) fail_with_code( 500, rh );
+	if( credis_set( rh, redis_key, value )) fail_with_code( 500, NULL, rh );
 
 	int resp_len = strlen( POST_RESULT_PREFIX POST_RESULT_CENTER_1 POST_RESULT_SUFFIX)
 		+ strlen( script_name ) + strlen( id ); 
@@ -169,10 +171,10 @@ static void do_put( char * id, char * value, REDIS rh,
 	sprintf( redis_key, "id:%s:text", id );
 
 	int status = credis_exists( rh, redis_key );
-	if( status==-1 ) fail_with_code( 404, rh );
+	if( status==-1 ) fail_with_code( 404, NULL, rh );
 
 	status = credis_set( rh, redis_key, value );
-	if( status ) fail_with_code( 500, rh );
+	if( status ) fail_with_code( 500, NULL, rh );
 
 	char * ok_put_response = 
 		"Status: 200 OK\r\n"
@@ -189,17 +191,17 @@ typedef void (set_func)( char * id, char * value, REDIS rh, char * script_name )
 static void set_data( set_func * set, char * id_arg, REDIS rh, char * script_name ) {
 	// Parse content length
 	char * len_str = getenv("CONTENT_LENGTH");
-	if( !len_str ) fail_with_code( 400, rh );
+	if( !len_str ) fail_with_code( 400, NULL, rh );
 	char * first_invalid = NULL;
 	long len = strtol( len_str, &first_invalid, 10 );
-	if( *first_invalid ) fail_with_code( 400, rh );
+	if( *first_invalid ) fail_with_code( 400, NULL, rh );
 
-	if( len > MAX_ENTITY_LENGTH ) fail_with_code( 413, rh );
+	if( len > MAX_ENTITY_LENGTH ) fail_with_code( 413, NULL, rh );
 
 	char * content_type = getenv("CONTENT_TYPE");
 	if( !content_type 
 		|| strcmp(content_type,"application/x-www-form-urlencoded")) 
-			fail_with_code( 415, rh );
+			fail_with_code( 415, NULL, rh );
 
 	// Read input
 	char input[ len + 1 ];
@@ -218,7 +220,7 @@ static void set_data( set_func * set, char * id_arg, REDIS rh, char * script_nam
 		// url-decode the data ... the new values must be freed
 		key = url_decode( key );
 		value = url_decode( value );
-		if( !key || !value ) fail_with_code( 400, rh );
+		if( !key || !value ) fail_with_code( 400, NULL, rh );
 
 		if( !strcmp( "data", key ) ) {
 			ensure_redis_connection( &rh );
@@ -253,7 +255,7 @@ int main( int argc, char ** argv ) {
 	//   SCRIPT_NAME is /api
 	char * name = getenv("SCRIPT_NAME");
 
-	if(!uri || !method || !name ) fail_with_code( 400, rh );
+	if(!uri || !method || !name ) fail_with_code( 400, NULL, rh );
 	
 
 	// TODO: need to detect proxy use?
@@ -293,13 +295,18 @@ int main( int argc, char ** argv ) {
 				if(method && !strcmp("GET",method)) {
 					printf(ok_response, strlen( VERSION_CONTENT ), 
 						VERSION_CONTENT, "", "", "", "");
-				} else fail_with_code( 405, rh );
+				} else if(method && !strcmp("HEAD",method)) {
+					printf(ok_response, strlen( VERSION_CONTENT ), 
+						"", "", "", "", "");
+				} else if(method && !strcmp("OPTIONS",method)) {
+					printf( "Status: 200 OK\r\nAllow: GET, HEAD, OPTIONS\r\n\r\n" );
+				} else fail_with_code( 405, "Allow: GET, HEAD, OPTIONS", rh );
 			} else if(!strcmp("todos",slug) ) {
 				
 				if((slug = strtok_r( portion, "/", &portion ))) {
 					// if there are slugs following "todos"
 
-					if( strtok_r( portion, "/", &portion ) ) fail_with_code( 404, rh );
+					if( strtok_r( portion, "/", &portion ) ) fail_with_code( 404, NULL, rh );
 
 					if(method && !strcmp("PUT",method)) {
 						set_data( &do_put, slug, rh, name );
@@ -319,34 +326,45 @@ int main( int argc, char ** argv ) {
 								|| status == -1 /* didn't exist */ ) {
 
 								printf( "Status: 200 OK\r\nContent-Length: 0\r\n\r\n");
-							} else fail_with_code( 500, rh );
-						} else fail_with_code( 500, rh );
+							} else fail_with_code( 500, NULL, rh );
+						} else fail_with_code( 500, NULL, rh );
 
-					} else if(method && !strcmp("GET",method)) {
+					} else if(method && 
+							( !strcmp("GET",method) || !strcmp("HEAD",method) 
+								|| !strcmp("OPTIONS",method) )) {
+
 						ensure_redis_connection( &rh );
 
 						char redis_key[ 3 + strlen(slug) + 5 + 1];
 						sprintf( redis_key, "id:%s:text", slug );
 
 						char * value;
-						if( credis_get( rh, redis_key, &value ) == -1 ) fail_with_code( 404, rh );
+						if( credis_get( rh, redis_key, &value ) == -1 ) fail_with_code( 404, NULL, rh );
 
 						int resp_len = 
 							strlen( GET_RESULT_PREFIX GET_RESULT_CENTER_1 GET_RESULT_CENTER_2 GET_RESULT_CENTER_3 GET_RESULT_SUFFIX ) 
 							+ strlen( name ) + strlen( slug ) + strlen( value );
 						
-
-						printf( ok_single_get_response, resp_len,
-							GET_RESULT_PREFIX, slug, GET_RESULT_CENTER_1, 
-							name, GET_RESULT_CENTER_2, slug, 
-							GET_RESULT_CENTER_3, value, GET_RESULT_SUFFIX );
-					} else fail_with_code( 405, rh );
+						if( !strcmp("GET",method) ) {
+							printf( ok_single_get_response, resp_len,
+								GET_RESULT_PREFIX, slug, GET_RESULT_CENTER_1, 
+								name, GET_RESULT_CENTER_2, slug, 
+								GET_RESULT_CENTER_3, value, GET_RESULT_SUFFIX );
+						} else if( !strcmp("HEAD",method) ) {
+							printf( ok_single_get_response, resp_len, 
+								"", "", "", "", "", "", "", "", "" );
+						} else if( !strcmp("OPTIONS",method) ) {
+							printf( "Status: 200 OK\r\nAllow: DELETE, GET, HEAD, OPTIONS, PUT" );
+						}
+					} else fail_with_code( 405, "Allow: DELETE, GET, HEAD, OPTIONS, PUT", rh );
 
 				} else { 
 					// if "todos" is final slug
 					if(method && !strcmp("POST",method)) {
 						set_data( &do_post, NULL, rh, name );
-					} else if(method && !strcmp("GET",method)) {
+					} else if(method && 
+						( !strcmp("GET",method) || !strcmp("HEAD",method))) {
+
 						// Implement GET /todos collection
 
 						size_t out_len = 256;
@@ -379,7 +397,7 @@ int main( int argc, char ** argv ) {
 							char redis_key[ 3 + strlen(one_id) + 5 + 1];
 							sprintf( redis_key, "id:%s:text", one_id );
 
-							if( credis_get( rh, redis_key, &value ) == -1) fail_with_code( 500, rh );
+							if( credis_get( rh, redis_key, &value ) == -1) fail_with_code( 500, NULL, rh );
 							
 							APPEND( body, "<li><a t:id=\"", out_len );
 							APPEND( body, one_id, out_len );
@@ -397,25 +415,34 @@ int main( int argc, char ** argv ) {
 						APPEND( body, "</ul>", out_len );
 						APPEND( body, XHTML_SUFFIX, out_len );
 #undef APPEND
-
-						printf( ok_response, strlen(body), body, "", "", "", "" );
+						if( !strcmp("GET",method) ) {
+							printf( ok_response, strlen(body), body, "", "", "", "" );
+						} else { // HEAD
+							printf( ok_response, strlen(body), "", "", "", "", "" );
+						}
 
 						free( body );
 
-					} else fail_with_code( 405, rh );
+					} else if(method && !strcmp("OPTIONS",method)) {
+						printf( "Status: 200 OK\r\nAllow: GET, HEAD, OPTIONS, POST\r\n\r\n" );
+					} else fail_with_code( 405, "Allow: GET, HEAD, OPTIONS, POST", rh );
 
 				}
 
-			} else fail_with_code( 404, rh );
+			} else fail_with_code( 404, NULL, rh );
 		}
 
 		if(is_root) {
+				int resp_len = strlen( ROOT_PATH_PREFIX ROOT_PATH_CENTER_1 ROOT_PATH_SUFFIX ) + ( 2 * strlen( name ) );
 			// Handle request for root path /
 			if(method && !strcmp("GET",method)) {
-				int resp_len = strlen( ROOT_PATH_PREFIX ROOT_PATH_CENTER_1 ROOT_PATH_SUFFIX ) + ( 2 * strlen( name ) );
 				printf( ok_response, resp_len, ROOT_PATH_PREFIX, 
 					name, ROOT_PATH_CENTER_1, name, ROOT_PATH_SUFFIX);
-			} else fail_with_code( 405, rh );
+			} else if(method && !strcmp("HEAD",method)) {
+				printf( ok_response, resp_len, "", "" , "" , "" , "");  
+			} else if(method && !strcmp("OPTIONS",method)) {
+				printf( "Status: 200 OK\r\nAllow: GET, HEAD, OPTIONS\r\n\r\n" );
+			} else fail_with_code( 405, "Allow: GET, HEAD, OPTIONS", rh );
 		}
 	}
 	

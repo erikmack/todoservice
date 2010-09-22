@@ -1,9 +1,15 @@
 TESTS = \
 	test_case_010.sh \
+	test_case_013.sh \
+	test_case_016.sh \
 	test_case_020.sh \
 	test_case_050.sh \
+	test_case_053.sh \
+	test_case_056.sh \
 	test_case_060.sh \
 	test_case_110.sh \
+	test_case_113.sh \
+	test_case_116.sh \
 	test_case_130.sh \
 	test_case_135.sh \
 	test_case_140.sh \
@@ -12,6 +18,10 @@ TESTS = \
 	test_case_160.sh \
 	test_case_200.sh \
 	test_case_210.sh \
+	test_case_222.sh \
+	test_case_223.sh \
+	test_case_226.sh \
+	test_case_227.sh \
 	test_case_230.sh \
 	test_case_235.sh \
 	test_case_240.sh \
@@ -84,11 +94,27 @@ test_case_010.sh:
 	echo "grep \"/version\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 
+test_case_013.sh:
+	echo "PATH_INFO=/" > $@
+	echo "REQUEST_METHOD=HEAD" >> $@
+	$(COMMON_ECHO)
+	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+
+test_case_016.sh:
+	echo "PATH_INFO=/" > $@
+	echo "REQUEST_METHOD=OPTIONS" >> $@
+	$(COMMON_ECHO)
+	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Allow: GET, HEAD, OPTIONS\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+
 test_case_020.sh:
 	echo "PATH_INFO=/" > $@
 	echo "REQUEST_METHOD=PUT" >> $@
 	$(COMMON_ECHO)
 	echo "grep \"Status: 405 Method Not Allowed\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Allow: GET, HEAD, OPTIONS\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 
 test_case_050.sh:
@@ -101,11 +127,27 @@ test_case_050.sh:
 	echo "grep \"age\\\">0<\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 
+test_case_053.sh:
+	echo "PATH_INFO=/version" > $@
+	echo "REQUEST_METHOD=HEAD" >> $@
+	$(COMMON_ECHO)
+	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+
+test_case_056.sh:
+	echo "PATH_INFO=/version" > $@
+	echo "REQUEST_METHOD=OPTIONS" >> $@
+	$(COMMON_ECHO)
+	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Allow: GET, HEAD, OPTIONS\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+
 test_case_060.sh:
 	echo "PATH_INFO=/version" > $@
 	echo "REQUEST_METHOD=PUT" >> $@
 	$(COMMON_ECHO)
 	echo "grep \"Status: 405 Method Not Allowed\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Allow: GET, HEAD, OPTIONS\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 
 test_case_110.sh:
@@ -125,6 +167,21 @@ test_case_110.sh:
 	echo "grep \"href=\\\"/api/todos/my\\\"\" out.txt >/dev/null || exit 1" >> $@
 	echo "grep \"href=\\\"/api/todos/my-test\\\"\" out.txt >/dev/null || exit 1" >> $@
 	echo "grep \"href=\\\"/api/todos/my-test-message\\\"\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+
+test_case_113.sh:
+	echo "PATH_INFO=/todos" >> $@
+	echo "REQUEST_METHOD=HEAD" >> $@
+	$(COMMON_ECHO)
+	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+
+test_case_116.sh:
+	echo "PATH_INFO=/todos" >> $@
+	echo "REQUEST_METHOD=OPTIONS" >> $@
+	$(COMMON_ECHO)
+	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Allow: GET, HEAD, OPTIONS, POST\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 
 test_case_130.sh:
@@ -186,6 +243,7 @@ test_case_160.sh:
 	$(DATA_TEST_INIT)
 	$(COMMON_ECHO)
 	echo "grep \"Status: 405 Method Not Allowed\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Allow: GET, HEAD, OPTIONS, POST\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 
 test_case_200.sh:
@@ -214,6 +272,67 @@ test_case_210.sh:
 	echo "grep \"Location: /api/todos/my\" out.txt >/dev/null || exit 1" >> $@
 	echo "PATH_INFO=/todos/hey" >> $@
 	echo "REQUEST_METHOD=GET" >> $@
+	$(COMMON_ECHO)
+	echo "grep \"Status: 404 File Not Found\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+	
+test_case_222.sh:
+	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
+	echo "PATH_INFO=/todos" >> $@
+	echo "REQUEST_METHOD=POST" >> $@
+	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
+	$(DATA_TEST_INIT)
+	$(COMMON_ECHO)
+	echo "grep \"Status: 201 Created\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Location: /api/todos/my\" out.txt >/dev/null || exit 1" >> $@
+	echo "PATH_INFO=/todos/my" >> $@
+	echo "REQUEST_METHOD=HEAD" >> $@
+	$(COMMON_ECHO)
+	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+
+test_case_223.sh:
+	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
+	echo "PATH_INFO=/todos" >> $@
+	echo "REQUEST_METHOD=POST" >> $@
+	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
+	$(DATA_TEST_INIT)
+	$(COMMON_ECHO)
+	echo "grep \"Status: 201 Created\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Location: /api/todos/my\" out.txt >/dev/null || exit 1" >> $@
+	echo "PATH_INFO=/todos/hey" >> $@
+	echo "REQUEST_METHOD=HEAD" >> $@
+	$(COMMON_ECHO)
+	echo "grep \"Status: 404 File Not Found\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+	
+test_case_226.sh:
+	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
+	echo "PATH_INFO=/todos" >> $@
+	echo "REQUEST_METHOD=POST" >> $@
+	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
+	$(DATA_TEST_INIT)
+	$(COMMON_ECHO)
+	echo "grep \"Status: 201 Created\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Location: /api/todos/my\" out.txt >/dev/null || exit 1" >> $@
+	echo "PATH_INFO=/todos/my" >> $@
+	echo "REQUEST_METHOD=OPTIONS" >> $@
+	$(COMMON_ECHO)
+	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Allow: DELETE, GET, HEAD, OPTIONS, PUT\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+
+test_case_227.sh:
+	echo "REQUEST_BODY=data=My+t%65st%20message" > $@
+	echo "PATH_INFO=/todos" >> $@
+	echo "REQUEST_METHOD=POST" >> $@
+	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
+	$(DATA_TEST_INIT)
+	$(COMMON_ECHO)
+	echo "grep \"Status: 201 Created\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Location: /api/todos/my\" out.txt >/dev/null || exit 1" >> $@
+	echo "PATH_INFO=/todos/hey" >> $@
+	echo "REQUEST_METHOD=OPTIONS" >> $@
 	$(COMMON_ECHO)
 	echo "grep \"Status: 404 File Not Found\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
@@ -322,6 +441,7 @@ test_case_295.sh:
 	echo "REQUEST_METHOD=POST" >> $@
 	$(COMMON_ECHO)
 	echo "grep \"Status: 405 Method Not Allowed\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Allow: DELETE, GET, HEAD, OPTIONS, PUT\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)
 
 test_case_300.sh:
