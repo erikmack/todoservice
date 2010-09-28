@@ -46,7 +46,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define ROOT_PATH_PREFIX XHTML_PREFIX "<p><a id=\"todos-link\" href=\""
 #define ROOT_PATH_CENTER_1 "/todos\">View todos</a></p><p><a id=\"version-link\" href=\""
-#define ROOT_PATH_SUFFIX "/version\">Version information</a></p>" XHTML_SUFFIX
+#define ROOT_PATH_SUFFIX "/version\">Version information</a></p><p><a id=\"source-link\" href=\"http://github.com/erikmack/todoservice/downloads\">Source</a></p>" XHTML_SUFFIX
 
 static void ensure_redis_connection( REDIS * rhp ) {
 	// Only need to run once
