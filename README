@@ -1,3 +1,61 @@
+todoservice
+===========
+A toy implementation of a not-quite-RESTful "todo" service implemented
+as a CGI program with Redis as a data store.
+
+Why?  I wanted a simple service like this that could be used over a network, and
+get all the things that come for nearly-free with HTTP (authentication, encryption,
+proxy support, etc.)
+
+This is a very simple API for a to-do list.  A "todo" is simply an ASCII 
+string (with no supporting metadata like completion info, etc.)  The API
+allows for GET/PUT/POST/DELETE for todos.
+
+Some sample apache configurations are included in example/apache_vhosts.
+
+A serviceable bash client lives in example/client.
+
+Although the service isn't quite RESTful, it could be made so without too much
+work.
+
+A true RESTful implementation would take the hypermedia constraint a little more
+seriously.  While this API exposes all GETtable resources as links, it should
+also have a POST form at the /todos URL, and PUT/DELETE forms at the /todo/{ID}
+URLs.  This would make the service self-describing, and clients could discover
+the possible interactions, rather than having them hard-coded and
+tightly-coupled.
+
+Redis is used as the data store.  By default, the CGI script will expect Redis
+to be listening at localhost:6379, and use database 0, but this can be adjusted
+if necessary.  Run ./configure --help to see how to override the defaults.
+
+A decent battery of unit tests is included, mostly just to guard what URIs
+return what error codes with which methods and under which conditions.  "make
+check" will run them.
+
+Although only ASCII-encodable todos are supported at this point, multibyte todos
+could be implemented without too much work.  Redis doesn't care about encoding,
+so it would mostly be a matter of setting the response headers correctly.
+
+
+Installation
+============
+the usual:
+  ./configure
+  make
+  sudo make install
+
+... will do, although a preliminary
+  ./configure --help
+... is always instructive
+
+The CGI binary "todoservice" is installed into /usr/libexec.  See the example apache
+vhost configurations.
+
+The test client "td" is installed into /usr/bin.  Try "td --help" for a little
+guidance.
+
+
 
 URI Specification
 =================

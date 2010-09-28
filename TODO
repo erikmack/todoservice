@@ -13,11 +13,6 @@ Implement at least one basic caching mechanism
 Implement sample apache vhost include, nicely commented, 
 	also one with authentication
 
-Find portable alternative to pgrep in unit tests
-
-implement secure flag in POST, generates numeric ID to 
-keep sensitive information out of ID
-
 Add configure.ac checks for all test programs: pgrep,
 redis-cli, xsltproc
 
@@ -36,9 +31,5 @@ todo text should be entity-escaped in output ... < -> &lt;
 Add feature test macros
 
 td client should test version
-
-/ contains link to source on github, for Affero compliance
-
-Improve README for general consumption
 
 ensure_redis_connection should fail_with_code

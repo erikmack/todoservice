@@ -1,5 +1,5 @@
 /*
-todoservice - a toy implementation of a RESTful "todo" service implemented
+todoservice - a toy implementation of a not-quite-RESTful "todo" service implemented
               as a CGI program with Redis as a data store
 Copyright (C) 2010 Free Software Foundation
 
