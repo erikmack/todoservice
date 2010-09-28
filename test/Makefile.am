@@ -172,6 +172,7 @@ test_case_110.sh:
 test_case_113.sh:
 	echo "PATH_INFO=/todos" >> $@
 	echo "REQUEST_METHOD=HEAD" >> $@
+	$(DATA_TEST_INIT)
 	$(COMMON_ECHO)
 	echo "grep \"Status: 200 OK\" out.txt >/dev/null || exit 1" >> $@
 	$(COMMON_POST_ECHO)

@@ -343,7 +343,7 @@ int main( int argc, char ** argv ) {
 
 						int resp_len = 
 							strlen( GET_RESULT_PREFIX GET_RESULT_CENTER_1 GET_RESULT_CENTER_2 GET_RESULT_CENTER_3 GET_RESULT_SUFFIX ) 
-							+ strlen( name ) + strlen( slug ) + strlen( value );
+							+ strlen( name ) + (2*strlen( slug )) + strlen( value );
 						
 						if( !strcmp("GET",method) ) {
 							printf( ok_single_get_response, resp_len,
