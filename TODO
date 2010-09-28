@@ -33,3 +33,7 @@ Add feature test macros
 td client should test version
 
 ensure_redis_connection should fail_with_code
+
+ebuild
+
+configure script informs about credis dependency

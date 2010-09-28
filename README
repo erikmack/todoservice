@@ -7,6 +7,11 @@ Why?  I wanted a simple service like this that could be used over a network, and
 get all the things that come for nearly-free with HTTP (authentication, encryption,
 proxy support, etc.)
 
+Also, freedom and data ownership!  The Affero licensing means you are free to
+change the source as you like (with a share-alike condition).  And when you run
+your own data servers instead of using hosted solutions, you regain privacy and
+the power that is lost when we let others take care of our data.
+
 This is a very simple API for a to-do list.  A "todo" is simply an ASCII 
 string (with no supporting metadata like completion info, etc.)  The API
 allows for GET/PUT/POST/DELETE for todos.
@@ -36,6 +41,26 @@ check" will run them.
 Although only ASCII-encodable todos are supported at this point, multibyte todos
 could be implemented without too much work.  Redis doesn't care about encoding,
 so it would mostly be a matter of setting the response headers correctly.
+
+
+
+Dependencies
+============
+
+   Build-time
+   ----------
+   credis - http://code.google.com/p/credis/
+   
+   Run-time
+   --------
+   redis - http://code.google.com/p/redis/
+   Apache - presumably, but any CGI-capable web server should do
+
+   td client
+   ---------
+   bash
+   xsltproc - part of libxslt from http://www.xmlsoft.org/
+   curl - http://curl.haxx.se/
 
 
 Installation
