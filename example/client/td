@@ -71,7 +71,6 @@ else
 		"post") 
 			post=true
 			need_curl=true
-			need_xsltproc=true
 			;;
 		"put") 
 			put=true
@@ -130,7 +129,7 @@ if ${list} || ${post} || ${put}; then
 			</xsl:template>
 		</xsl:stylesheet>
 		EOF
-	elif ${post} || ${put}; then
+	elif ${put}; then
 		cat >${stylesheet} <<-EOF
 		<xsl:stylesheet version="1.0" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:t="http://mackdanz.net/todoservice">
 			<xsl:output method="text" />
@@ -145,7 +144,7 @@ if ${list} || ${post} || ${put}; then
 	curlout=$(mktemp)
 	${CURL_COMMAND} 2>/dev/null >${curlout}
 
-	if test -s ${curlout}; then
+	if ${need_xsltproc} && test -s ${curlout}; then
 		xsltproc ${stylesheet} - <${curlout}
 	fi
 
