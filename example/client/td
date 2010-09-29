@@ -38,6 +38,12 @@ Usage:
    td put item-id "my revised todo item" Update existing item
    td del item-id                        Delete item
    td --help                             Print this message
+
+Environment variables:
+   TODO_BASE_URL (required) - set to the base URL of the service
+   TODO_CURL_EXTRA_ARGS (optional) - if authentication is configured on
+      the web server, or if any other flags should be set for curl,
+	  set the flags here
 EOF
 
 	if [ -n "${msg}" ]; then 
@@ -115,7 +121,7 @@ if ${put} || ${delete}; then
 	ITEM_ID=/$2
 fi
 
-CURL_COMMAND="curl ${CURL_ARGS} ${TODO_BASE_URL}/todos${ITEM_ID}"
+CURL_COMMAND="curl ${CURL_ARGS} ${TODO_CURL_EXTRA_ARGS} ${TODO_BASE_URL}/todos${ITEM_ID}"
 
 if ${list} || ${post} || ${put}; then
 	stylesheet=$(mktemp)

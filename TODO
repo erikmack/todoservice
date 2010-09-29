@@ -10,9 +10,6 @@ Implement at least one basic caching mechanism
   fixed URIs like / and /version
   ... or, just hard-code with API version parts
 
-Implement sample apache vhost include, nicely commented, 
-	also one with authentication
-
 Add configure.ac checks for all test programs: pgrep,
 redis-cli, xsltproc
 
