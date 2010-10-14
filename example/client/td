@@ -151,7 +151,21 @@ if ${list} || ${post} || ${put}; then
 	${CURL_COMMAND} 2>/dev/null >${curlout}
 
 	if ${need_xsltproc} && test -s ${curlout}; then
-		xsltproc ${stylesheet} - <${curlout}
+		# process xslt to temp file
+		xsltout=$(mktemp)
+		xsltproc ${stylesheet} - <${curlout} >${xsltout}
+
+		# for formatting, find length of longest id line
+		# this could be done in shell to remove a dependency
+		maxlen=$(awk '{ if (x < length($1)) x = length($1) } END { print x }' ${xsltout})
+
+		# print output
+		while read id text; do
+			printf " %${maxlen}s " ${id};
+			echo ${text}
+		done < ${xsltout}
+
+		rm -f ${xsltout}
 	fi
 
 	rm -f ${stylesheet} ${curlout}

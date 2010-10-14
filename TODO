@@ -1,5 +1,3 @@
-Package credis as subproject?  Compiled statically?
-
 create_unique_slug should take multibyte characters
   - current behavior technically works with MB input...
     resulting ID may be unexpected, but it will be a
@@ -18,6 +16,8 @@ Unit tests that validate the XHTML should use xsltproc
 Improved error handling for 500, at least send back the redis
 error code
 
+Add unit tests for 500, try using corrupted data (mismatch ids with members)
+
 Determine if need to detect proxy use in request ... will Apache
 fork() an API process if request has full URI?
 
@@ -28,9 +28,13 @@ todo text should be entity-escaped in output ... < -> &lt;
 Add feature test macros
 
 td client should test version
+td client should request /todos list following a post
+td client should "join" final args, so that quotes aren't required for PUT/POST
+bash-completion for td client
+td client should fail in a friendlier way
 
 ensure_redis_connection should fail_with_code
 
-ebuild
-
 configure script informs about credis dependency
+
+POST should handle =

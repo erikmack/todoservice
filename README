@@ -18,7 +18,7 @@ allows for GET/PUT/POST/DELETE for todos.
 
 Some sample apache configurations are included in example/apache_vhosts.
 
-A serviceable bash client lives in example/client.
+A serviceable shell client lives in example/client.
 
 Although the service isn't quite RESTful, it could be made so without too much
 work.
@@ -58,7 +58,6 @@ Dependencies
 
    td client
    ---------
-   bash
    xsltproc - part of libxslt from http://www.xmlsoft.org/
    curl - http://curl.haxx.se/
 
