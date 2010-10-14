@@ -103,22 +103,25 @@ if ${need_xsltproc} && ! xsltproc --version >/dev/null 2>&1 ; then
 	exit 1 
 fi
 
+# discard verb
+shift
+
+ITEM_ID=
+if ${put} || ${delete}; then
+	ITEM_ID=/$1
+	shift
+fi
+
 CURL_ARGS=
 if ${post} || ${put}; then
-	DATA=$2
+	DATA="$@"
 	if ${put}; then
-		DATA=$3
 		CURL_ARGS="${CURL_ARGS} --request PUT"
 	fi
 	DATA=$(echo ${DATA} | sed -e "s/ /+/g")
 	CURL_ARGS="${CURL_ARGS} -d data=${DATA}"
 elif ${delete}; then
 	CURL_ARGS="${CURL_ARGS} --request DELETE"
-fi
-
-ITEM_ID=
-if ${put} || ${delete}; then
-	ITEM_ID=/$2
 fi
 
 CURL_COMMAND="curl ${CURL_ARGS} ${TODO_CURL_EXTRA_ARGS} ${TODO_BASE_URL}/todos${ITEM_ID}"
@@ -173,4 +176,3 @@ if ${list} || ${post} || ${put}; then
 elif ${delete}; then
 	${CURL_COMMAND} 2>/dev/null 
 fi
-
