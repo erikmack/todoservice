@@ -1,8 +1,7 @@
 /*
 todoservice - a toy implementation of a not-quite-RESTful "todo" service implemented
               as a CGI program with Redis as a data store
-Copyright (C) 2010 Free Software Foundation
-
+Copyright (C) 2010 Free Software Foundation 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -212,7 +211,7 @@ static void set_data( set_func * set, char * id_arg, REDIS rh, char * script_nam
 	char * pair, * key, * value;
 	while((pair = strtok_r( inputp, "&", &inputp ))) {
 		key = strtok_r( pair, "=", &pair );
-		value = strtok_r( pair, "=", &pair );
+		value = strtok_r( pair, "", &pair );
 
 		if( !key ) key = "";
 		if( !value ) value = "";

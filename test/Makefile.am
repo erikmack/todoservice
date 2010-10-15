@@ -41,7 +41,8 @@ TESTS = \
 	url_decode_01.sh \
 	url_decode_02.sh \
 	url_decode_03.sh \
-	url_decode_04.sh
+	url_decode_04.sh \
+	defect_equals_in_data.sh
 
 check_PROGRAMS = \
 	uniqueslug \
@@ -500,6 +501,21 @@ url_decode_04.sh: urldecode
 	echo "./urldecode \"hel%6co+sir+\" \"hello sir \" || exit 1" > $@
 	$(COMMON_POST_ECHO)
 
+defect_equals_in_data.sh:
+	echo "REQUEST_BODY=data=x=y=4" > $@
+	echo "PATH_INFO=/todos" >> $@
+	echo "REQUEST_METHOD=POST" >> $@
+	echo "CONTENT_TYPE=application/x-www-form-urlencoded" >> $@
+	$(DATA_TEST_INIT)
+	$(COMMON_ECHO)
+	echo "grep \"Location: /api/todos/x\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"Status: 201 Created\" out.txt >/dev/null || exit 1" >> $@
+	echo "grep \"href=\\\"/api/todos/x\\\"\" out.txt >/dev/null || exit 1" >> $@
+	echo "REQUEST_METHOD=GET" >> $@
+	echo '../src/todoservice >out.txt' >> $@
+	echo "grep \"x=y=4\" out.txt >/dev/null || exit 1" >> $@
+	$(COMMON_POST_ECHO)
+	
 
 
 

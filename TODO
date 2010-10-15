@@ -36,5 +36,3 @@ td client should fail in a friendlier way
 ensure_redis_connection should fail_with_code
 
 configure script informs about credis dependency
-
-POST should handle =
